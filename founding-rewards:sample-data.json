@@ -1,0 +1,168 @@
+{
+  "customers": [
+    {
+      "id": "cust_sample_1",
+      "fullName": "Marcus Reed",
+      "email": "demo.marcus@example.com",
+      "phone": "478-555-0142",
+      "business": "Reed Media",
+      "customerType": "custom",
+      "dateJoined": "2026-05-12",
+      "notes": "Sample record, safe to delete.",
+      "active": true
+    },
+    {
+      "id": "cust_sample_2",
+      "fullName": "Priya Nandan",
+      "email": "demo.priya@example.com",
+      "phone": "478-555-0198",
+      "business": "",
+      "customerType": "website",
+      "dateJoined": "2026-06-02",
+      "notes": "Sample record, safe to delete.",
+      "active": true
+    },
+    {
+      "id": "cust_sample_3",
+      "fullName": "Tobias Hale",
+      "email": "demo.tobias@example.com",
+      "phone": "",
+      "business": "Hale Ministries",
+      "customerType": "partner",
+      "dateJoined": "2026-04-20",
+      "notes": "Sample record, safe to delete.",
+      "active": true
+    }
+  ],
+  "ledger": [
+    {
+      "id": "ledg_sample_1",
+      "customerEmail": "demo.marcus@example.com",
+      "customerName": "Marcus Reed",
+      "date": "2026-05-12",
+      "activityType": "Purchase",
+      "points": 84,
+      "dollarAmount": 84,
+      "orderRef": "DEMO-1001",
+      "source": "Custom Order",
+      "status": "Approved",
+      "notes": "Sample entry.",
+      "approvedBy": "Davis"
+    },
+    {
+      "id": "ledg_sample_2",
+      "customerEmail": "demo.marcus@example.com",
+      "customerName": "Marcus Reed",
+      "date": "2026-05-20",
+      "activityType": "Written Testimonial",
+      "points": 100,
+      "dollarAmount": null,
+      "orderRef": "",
+      "source": "Testimonial",
+      "status": "Approved",
+      "notes": "Sample entry.",
+      "approvedBy": "Davis"
+    },
+    {
+      "id": "ledg_sample_3",
+      "customerEmail": "demo.priya@example.com",
+      "customerName": "Priya Nandan",
+      "date": "2026-06-02",
+      "activityType": "Purchase",
+      "points": 46,
+      "dollarAmount": 46,
+      "orderRef": "SHOP-2044",
+      "source": "Shopify",
+      "status": "Approved",
+      "notes": "Sample entry.",
+      "approvedBy": ""
+    },
+    {
+      "id": "ledg_sample_4",
+      "customerEmail": "demo.priya@example.com",
+      "customerName": "Priya Nandan",
+      "date": "2026-06-10",
+      "activityType": "Customer Photo",
+      "points": 150,
+      "dollarAmount": null,
+      "orderRef": "",
+      "source": "Testimonial",
+      "status": "Pending",
+      "notes": "Sample entry.",
+      "approvedBy": ""
+    },
+    {
+      "id": "ledg_sample_5",
+      "customerEmail": "demo.tobias@example.com",
+      "customerName": "Tobias Hale",
+      "date": "2026-04-25",
+      "activityType": "Purchase",
+      "points": 320,
+      "dollarAmount": 320,
+      "orderRef": "DEMO-1002",
+      "source": "Custom Order",
+      "status": "Approved",
+      "notes": "Sample entry.",
+      "approvedBy": "Davis"
+    }
+  ],
+  "testimonials": [
+    {
+      "id": "test_sample_1",
+      "customerEmail": "demo.marcus@example.com",
+      "customerName": "Marcus Reed",
+      "dateSubmitted": "2026-05-20",
+      "testimonialText": "Quick turnaround and the shirts held up after a dozen washes. Would order again.",
+      "photoRef": "",
+      "videoUrl": "",
+      "permWebsite": true,
+      "permSocial": true,
+      "permAdvertising": false,
+      "approvalStatus": "Approved",
+      "pointsAwarded": 100,
+      "featured": true,
+      "notes": "Sample entry."
+    },
+    {
+      "id": "test_sample_2",
+      "customerEmail": "demo.priya@example.com",
+      "customerName": "Priya Nandan",
+      "dateSubmitted": "2026-06-10",
+      "testimonialText": "",
+      "photoRef": "demo-photo.jpg",
+      "videoUrl": "",
+      "permWebsite": true,
+      "permSocial": false,
+      "permAdvertising": false,
+      "approvalStatus": "Pending",
+      "pointsAwarded": 0,
+      "featured": false,
+      "notes": "Sample entry."
+    }
+  ],
+  "referrals": [
+    {
+      "id": "ref_sample_1",
+      "referringEmail": "demo.tobias@example.com",
+      "referringName": "Tobias Hale",
+      "referredName": "Grace Fellowship Youth Group",
+      "referredContact": "478-555-0177",
+      "dateReferred": "2026-06-15",
+      "status": "Quoted",
+      "orderValue": 0,
+      "rewardIssued": false,
+      "notes": "Sample entry."
+    }
+  ],
+  "settings": {
+    "programName": "Chozen Solutions Founding Rewards",
+    "pointsPerDollar": 1,
+    "testimonialReward": 100,
+    "photoReward": 150,
+    "photoTestimonialReward": 300,
+    "videoReward": 500,
+    "referralReward": 750,
+    "minRedemption": 100,
+    "termsText": "Chozen Solutions Founding Rewards points are earned through purchases, testimonials, photos, and referrals. Points have no cash value and cannot be transferred between accounts. Chozen Solutions reserves the right to adjust point values and redemption terms at any time. Rewards are issued for participation and completed purchases, not for positive feedback specifically, honest testimonials of any tone are welcome and rewarded equally."
+  }
+}
