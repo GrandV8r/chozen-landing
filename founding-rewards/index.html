@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chozen Solutions Founding Rewards</title>
+<title>A Chozen Few — Chozen Solutions Rewards</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,7 +16,7 @@
       <div class="brand-mark">CS</div>
       <div class="brand-text">
         <div class="brand-title">Chozen Solutions</div>
-        <div class="brand-sub">Founding Rewards</div>
+        <div class="brand-sub">A Chozen Few</div>
       </div>
     </div>
     <div class="nav-links">
@@ -140,6 +140,7 @@
               <th>Balance</th>
               <th>Lifetime Earned</th>
               <th>Total Purchases</th>
+              <th>Tier</th>
               <th>Status</th>
               <th></th>
             </tr>
@@ -334,7 +335,7 @@
         <div class="panel-header"><h2>Reward Values</h2></div>
         <div class="panel-body settings-grid">
           <div class="field">
-            <label class="field-label">Points per $1 spent</label>
+            <label class="field-label">Points earned per $1 spent</label>
             <input type="number" id="settingPointsPerDollar" class="text-input" min="0" step="0.1">
           </div>
           <div class="field">
@@ -358,8 +359,28 @@
             <input type="number" id="settingReferralReward" class="text-input" min="0" step="1">
           </div>
           <div class="field">
+            <label class="field-label">Account sign up bonus</label>
+            <input type="number" id="settingSignupBonus" class="text-input" min="0" step="1">
+          </div>
+          <div class="field">
+            <label class="field-label">Birthday bonus</label>
+            <input type="number" id="settingBirthdayBonus" class="text-input" min="0" step="1">
+          </div>
+          <div class="field">
+            <label class="field-label">Points redeemed per $1 (redemption rate)</label>
+            <input type="number" id="settingPointsPerDollarRedemption" class="text-input" min="1" step="1">
+          </div>
+          <div class="field">
             <label class="field-label">Minimum redemption amount (points)</label>
             <input type="number" id="settingMinRedemption" class="text-input" min="0" step="1">
+          </div>
+          <div class="field">
+            <label class="field-label">Referred friend's discount ($)</label>
+            <input type="number" id="settingReferredFriendDiscount" class="text-input" min="0" step="1">
+          </div>
+          <div class="field">
+            <label class="field-label">Referred friend's minimum purchase ($)</label>
+            <input type="number" id="settingReferredFriendMinPurchase" class="text-input" min="0" step="1">
           </div>
         </div>
         <button class="btn-primary-sm" id="btnSaveSettings" style="margin:16px">Save Settings</button>

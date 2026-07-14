@@ -30,15 +30,20 @@
 const STORAGE_KEY = "csfr_data";
 
 const DEFAULT_SETTINGS = {
-  programName: "Chozen Solutions Founding Rewards",
+  programName: "A Chozen Few",
   pointsPerDollar: 1,
   testimonialReward: 100,
   photoReward: 150,
   photoTestimonialReward: 300,
   videoReward: 500,
-  referralReward: 750,
-  minRedemption: 100,
-  termsText: "Chozen Solutions Founding Rewards points are earned through purchases, testimonials, photos, and referrals. Points have no cash value and cannot be transferred between accounts. Chozen Solutions reserves the right to adjust point values and redemption terms at any time. Rewards are issued for participation and completed purchases, not for positive feedback specifically, honest testimonials of any tone are welcome and rewarded equally."
+  referralReward: 750,          // referrer earns this when referred friend makes a purchase
+  signupBonus: 250,             // one-time, on account creation
+  birthdayBonus: 200,           // annual
+  pointsPerDollarRedemption: 100, // 100 points = $1 off
+  minRedemption: 500,           // minimum points balance to redeem ($5 value)
+  referredFriendDiscount: 10,   // $ off the referred friend's first order
+  referredFriendMinPurchase: 50, // minimum purchase for referred friend's discount to apply
+  termsText: "A Chozen Few points are earned through purchases (1 point per $1 spent), account signup (250 points), birthday (200 points), testimonials, photos, and referrals (750 points when your referral makes a purchase). 100 points = $1 off. Minimum redemption balance is 500 points ($5 value), applied to your entire order, not stackable with other discounts. Points have no cash value outside of redemption and cannot be transferred between accounts."
 };
 
 function emptyData() {
@@ -100,6 +105,30 @@ function fmtMoney(n) {
 function fmtPoints(n) {
   const v = Number(n) || 0;
   return v.toLocaleString("en-US");
+}
+
+// Real monetary value of a points balance, per A Chozen Few: 100 points = $1.
+function pointsToDollars(points) {
+  const rate = DATA.settings.pointsPerDollarRedemption || 100;
+  return (Number(points) || 0) / rate;
+}
+function fmtPointsValue(points) {
+  return `${fmtPoints(points)} pts (${fmtMoney(pointsToDollars(points))})`;
+}
+function canRedeem(points) {
+  return (Number(points) || 0) >= (DATA.settings.minRedemption || 500);
+}
+
+// Priority tier, internal tracking only, not pushed to Smile.io.
+function getTier(lifetimeSpend) {
+  const s = Number(lifetimeSpend) || 0;
+  if (s >= 200) return "Gold";
+  if (s >= 100) return "Silver";
+  if (s >= 50) return "Bronze";
+  return "Standard";
+}
+function tierColor(tier) {
+  return { Gold: "var(--tan)", Silver: "var(--silver)", Bronze: "var(--brown)", Standard: "var(--text-muted)" }[tier] || "var(--text-muted)";
 }
 
 function isValidEmail(email) {
@@ -187,6 +216,7 @@ function renderDashboard() {
   const stats = [
     { label: "Total Customers", value: totalCustomers, cls: "" },
     { label: "Outstanding Points", value: fmtPoints(totalOutstanding), cls: "accent-tan" },
+    { label: "Outstanding Liability", value: fmtMoney(pointsToDollars(totalOutstanding)), cls: "accent-brown" },
     { label: "Total Points Issued", value: fmtPoints(totalIssued), cls: "accent-blue" },
     { label: "Total Points Redeemed", value: fmtPoints(totalRedeemed), cls: "accent-brown" },
     { label: "Pending Testimonials", value: pendingTestimonials, cls: "" },
@@ -272,7 +302,8 @@ function renderCustomers() {
     ...c,
     balance: getCustomerBalance(c.email),
     lifetimeEarned: getCustomerLifetimeEarned(c.email),
-    totalPurchases: getCustomerTotalPurchases(c.email)
+    totalPurchases: getCustomerTotalPurchases(c.email),
+    tier: getTier(getCustomerTotalPurchases(c.email))
   }));
 
   rows.sort((a, b) => {
@@ -300,9 +331,10 @@ function renderCustomers() {
         <td><a class="row-link" data-email="${esc(c.email)}">${esc(c.fullName)}</a></td>
         <td>${esc(c.email)}</td>
         <td><span class="badge badge-type">${typeLabel(c.customerType)}</span></td>
-        <td class="num" style="color:var(--tan)">${fmtPoints(c.balance)}</td>
+        <td class="num" style="color:var(--tan)">${fmtPoints(c.balance)}<div style="font-size:11px;color:var(--text-muted)">${fmtMoney(pointsToDollars(c.balance))}</div></td>
         <td class="num">${fmtPoints(c.lifetimeEarned)}</td>
         <td class="num">${fmtMoney(c.totalPurchases)}</td>
+        <td><span style="color:${tierColor(c.tier)};font-size:12px;font-weight:600">${c.tier}</span></td>
         <td><span class="badge ${c.active ? 'badge-active' : 'badge-inactive'}">${c.active ? 'Active' : 'Inactive'}</span></td>
         <td><a class="row-link" data-email="${esc(c.email)}">Open →</a></td>
       </tr>
@@ -440,12 +472,14 @@ function renderProfile(email) {
   const earned = getCustomerLifetimeEarned(email);
   const redeemed = getCustomerLifetimeRedeemed(email);
   const purchases = getCustomerTotalPurchases(email);
+  const tier = getTier(purchases);
+  const eligible = canRedeem(balance);
 
   document.getElementById("profileStatGrid").innerHTML = `
-    <div class="stat-card"><div class="stat-label">Current Balance</div><div class="stat-value accent-tan">${fmtPoints(balance)}</div></div>
+    <div class="stat-card"><div class="stat-label">Current Balance</div><div class="stat-value accent-tan">${fmtPoints(balance)}</div><div style="font-size:12px;color:var(--text-secondary);margin-top:4px">${fmtMoney(pointsToDollars(balance))} value ${eligible ? "· redeemable" : "· below min"}</div></div>
     <div class="stat-card"><div class="stat-label">Lifetime Earned</div><div class="stat-value accent-blue">${fmtPoints(earned)}</div></div>
     <div class="stat-card"><div class="stat-label">Lifetime Redeemed</div><div class="stat-value accent-brown">${fmtPoints(redeemed)}</div></div>
-    <div class="stat-card"><div class="stat-label">Total Purchases</div><div class="stat-value">${fmtMoney(purchases)}</div></div>
+    <div class="stat-card"><div class="stat-label">Total Purchases</div><div class="stat-value">${fmtMoney(purchases)}</div><div style="font-size:12px;margin-top:4px;color:${tierColor(tier)}">${tier} tier</div></div>
   `;
 
   const entries = [...getCustomerLedger(email)].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
@@ -533,6 +567,8 @@ function openLedgerModal(email, name, mode) {
       <option value="Photo + Testimonial">Photo + testimonial (+${s.photoTestimonialReward})</option>
       <option value="Video Testimonial">Approved video testimonial (+${s.videoReward})</option>
       <option value="Referral Reward">Referral → paid customer (+${s.referralReward})</option>
+      <option value="Sign Up Bonus">Account sign up (+${s.signupBonus})</option>
+      <option value="Birthday Bonus">Birthday (+${s.birthdayBonus})</option>
       <option value="Other Reward">Other</option>`;
   } else if (mode === "redeem") {
     activityOptions = `<option value="Redemption">Redemption</option>`;
@@ -558,13 +594,18 @@ function openLedgerModal(email, name, mode) {
         </div>
       ` : mode === "redeem" ? `
         <div class="modal-field">
-          <label class="field-label">Points to redeem *</label>
-          <input type="number" class="text-input" id="mPoints" min="1" step="1">
+          <label class="field-label">Points to redeem * (100 points = $1)</label>
+          <input type="number" class="text-input" id="mPoints" min="${DATA.settings.minRedemption}" step="100">
         </div>
         <div class="modal-field">
           <label class="field-label">Current balance</label>
-          <input type="text" class="text-input" value="${fmtPoints(getCustomerBalance(email))} pts" readonly>
+          <input type="text" class="text-input" value="${fmtPointsValue(getCustomerBalance(email))}" readonly>
         </div>
+        <p style="font-size:12px;color:${canRedeem(getCustomerBalance(email)) ? 'var(--success)' : 'var(--danger)'};margin-top:-6px">
+          ${canRedeem(getCustomerBalance(email))
+            ? `Eligible to redeem, minimum is ${fmtPoints(DATA.settings.minRedemption)} points.`
+            : `Not yet eligible, needs ${fmtPoints(DATA.settings.minRedemption)} points minimum to redeem (${fmtPoints(DATA.settings.minRedemption - getCustomerBalance(email))} more needed).`}
+        </p>
       ` : `
         <div class="modal-field">
           <label class="field-label">Points *</label>
@@ -638,6 +679,8 @@ function openLedgerModal(email, name, mode) {
       "Photo + Testimonial": s.photoTestimonialReward,
       "Video Testimonial": s.videoReward,
       "Referral Reward": s.referralReward,
+      "Sign Up Bonus": s.signupBonus,
+      "Birthday Bonus": s.birthdayBonus,
       "Other Reward": 0
     };
     const setPoints = () => {
@@ -660,8 +703,9 @@ function openLedgerModal(email, name, mode) {
     const approvedBy = document.getElementById("mApprovedBy").value.trim();
 
     if (mode === "redeem") {
-      if (points <= 0) { toast("Enter a positive number of points to redeem.", true); return; }
       const balance = getCustomerBalance(email);
+      if (!canRedeem(balance)) { toast(`Balance must be at least ${fmtPoints(DATA.settings.minRedemption)} points to redeem, per A Chozen Few rules.`, true); return; }
+      if (points < DATA.settings.minRedemption) { toast(`Minimum redemption is ${fmtPoints(DATA.settings.minRedemption)} points per A Chozen Few rules.`, true); return; }
       if (points > balance) { toast(`This customer only has ${fmtPoints(balance)} points available.`, true); return; }
       points = -Math.abs(points); // redemption is a negative ledger entry
     }
@@ -1082,7 +1126,12 @@ function renderSettings() {
   document.getElementById("settingPhotoTestimonialReward").value = s.photoTestimonialReward;
   document.getElementById("settingVideoReward").value = s.videoReward;
   document.getElementById("settingReferralReward").value = s.referralReward;
+  document.getElementById("settingSignupBonus").value = s.signupBonus;
+  document.getElementById("settingBirthdayBonus").value = s.birthdayBonus;
+  document.getElementById("settingPointsPerDollarRedemption").value = s.pointsPerDollarRedemption;
   document.getElementById("settingMinRedemption").value = s.minRedemption;
+  document.getElementById("settingReferredFriendDiscount").value = s.referredFriendDiscount;
+  document.getElementById("settingReferredFriendMinPurchase").value = s.referredFriendMinPurchase;
   document.getElementById("settingTermsText").value = s.termsText;
 }
 
@@ -1095,7 +1144,12 @@ document.getElementById("btnSaveSettings").addEventListener("click", () => {
   s.photoTestimonialReward = parseInt(document.getElementById("settingPhotoTestimonialReward").value) || 0;
   s.videoReward = parseInt(document.getElementById("settingVideoReward").value) || 0;
   s.referralReward = parseInt(document.getElementById("settingReferralReward").value) || 0;
+  s.signupBonus = parseInt(document.getElementById("settingSignupBonus").value) || 0;
+  s.birthdayBonus = parseInt(document.getElementById("settingBirthdayBonus").value) || 0;
+  s.pointsPerDollarRedemption = parseInt(document.getElementById("settingPointsPerDollarRedemption").value) || 100;
   s.minRedemption = parseInt(document.getElementById("settingMinRedemption").value) || 0;
+  s.referredFriendDiscount = parseFloat(document.getElementById("settingReferredFriendDiscount").value) || 0;
+  s.referredFriendMinPurchase = parseFloat(document.getElementById("settingReferredFriendMinPurchase").value) || 0;
   saveData();
   toast("Settings saved.");
 });
