@@ -15,18 +15,26 @@ header{background:var(--panel);border-bottom:1px solid var(--border);padding:22p
 .tagline{font-size:11px;color:var(--silver);letter-spacing:.16em;text-transform:uppercase;margin-top:5px}
 .container{max-width:600px;margin:0 auto;padding:0 14px}
 
-/* Step header */
-.step-label{display:flex;align-items:center;gap:10px;margin:26px 0 10px}
+/* Method tabs */
+.method-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:20px}
+.method-tab{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 4px;text-align:center;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--silver);cursor:pointer;transition:all .15s;user-select:none}
+.method-tab.active{background:var(--blue);border-color:var(--blue);color:var(--white)}
+.method-tab:hover:not(.active){background:#242424}
+
+.step-label{display:flex;align-items:center;gap:10px;margin:24px 0 10px}
 .step-num{background:var(--blue);color:var(--white);font-family:'Cinzel',serif;font-size:11px;font-weight:700;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .step-title{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--silver)}
 
-/* Decoration select */
-.select-wrap{position:relative;width:100%}
-.select-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--blue-lt);pointer-events:none}
+.select-wrap{position:relative;width:100%;margin-bottom:8px}
+.select-wrap::after{content:'\25be';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--blue-lt);pointer-events:none}
 select{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'Inter',sans-serif;font-size:14px;padding:12px 40px 12px 14px;appearance:none;cursor:pointer}
 select:focus{outline:none;border-color:var(--blue)}
 
-/* Category accordion */
+.method-note{background:rgba(71,103,166,.12);border:1px solid rgba(71,103,166,.4);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--blue-lt);line-height:1.5;margin-bottom:6px}
+.method-note strong{color:var(--white)}
+.warn-note{background:rgba(147,90,22,.15);border:1px solid rgba(147,90,22,.4);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--tan);line-height:1.5;margin-bottom:6px;display:none}
+.warn-note.visible{display:block}
+
 .cat-block{margin-bottom:8px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
 .cat-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel2);cursor:pointer;user-select:none;transition:background .15s}
 .cat-header:hover{background:#242424}
@@ -39,7 +47,6 @@ select:focus{outline:none;border-color:var(--blue)}
 .cat-body{display:none;padding:10px}
 .cat-body.open{display:block}
 
-/* Product rows within category */
 .prod-block{margin-bottom:10px;background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden}
 .prod-block.has-items{border-color:var(--blue)}
 .prod-header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
@@ -58,9 +65,8 @@ select:focus{outline:none;border-color:var(--blue)}
 .qty-input{background:transparent;border:none;color:var(--white);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;width:28px;text-align:center}
 .qty-input:focus{outline:none}
 
-/* Summary */
 .summary-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;margin-top:24px;overflow:hidden}
-.summary-hdr{background:var(--blue);padding:11px 16px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.summary-hdr{background:var(--blue);padding:11px 16px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
 .summary-body{padding:14px}
 .summary-line{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
 .summary-line:last-child{border-bottom:none}
@@ -76,60 +82,148 @@ select:focus{outline:none;border-color:var(--blue)}
 .line-items td:nth-child(3){color:var(--silver)}
 .line-items td:last-child{text-align:right;color:var(--tan);font-weight:600}
 
-/* Tier tip */
 .tier-tip{background:rgba(147,90,22,.15);border:1px solid rgba(147,90,22,.4);border-radius:8px;padding:11px 13px;margin-top:12px;font-size:12px;color:var(--tan);line-height:1.5;display:none}
 .tier-tip.visible{display:block}
 .tier-tip strong{color:var(--white)}
 
-/* CTA */
+/* Owner adjustment */
+.owner-toggle{font-size:10px;color:rgba(147,157,183,.35);cursor:pointer;user-select:none;letter-spacing:.1em}
+.owner-panel{display:none;background:var(--panel2);border-top:1px solid var(--border);padding:12px 14px}
+.owner-panel.open{display:block}
+.owner-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.owner-row label{font-size:11px;color:var(--silver);letter-spacing:.08em;text-transform:uppercase}
+.owner-input{background:var(--input-bg);border:1px solid var(--border);border-radius:5px;color:var(--white);font-family:'Inter',sans-serif;font-size:13px;padding:7px 10px;width:90px}
+.owner-input:focus{outline:none;border-color:var(--blue)}
+.owner-seg{display:flex;border:1px solid var(--border);border-radius:5px;overflow:hidden}
+.owner-seg span{padding:7px 12px;font-size:12px;cursor:pointer;background:var(--input-bg);color:var(--silver)}
+.owner-seg span.on{background:var(--blue);color:var(--white)}
+.adj-line{color:var(--tan)}
+
 .cta-block{margin-top:24px;text-align:center}
 .cta-btn{display:inline-block;background:var(--blue);color:var(--white);font-family:'Inter',sans-serif;font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;padding:13px 28px;border-radius:6px;border:none;cursor:pointer;transition:background .2s;width:100%;max-width:340px}
 .cta-btn:hover{background:var(--blue-lt)}
 .cta-note{font-size:11px;color:var(--silver);margin-top:8px}
-
-/* Clear all */
 .clear-btn{background:none;border:1px solid var(--border);color:var(--silver);font-family:'Inter',sans-serif;font-size:11px;padding:6px 14px;border-radius:5px;cursor:pointer;margin-top:10px;transition:border-color .15s,color .15s}
 .clear-btn:hover{border-color:var(--brown);color:var(--tan)}
 
 footer{text-align:center;margin-top:44px;padding:0 20px;font-size:11px;color:var(--silver);line-height:1.7}
 footer a{color:var(--blue-lt);text-decoration:none}
-@media(max-width:380px){.size-grid{grid-template-columns:1fr}}
+@media(max-width:380px){.size-grid{grid-template-columns:1fr}.method-tabs{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
 <header>
   <div class="logo-word">CHOZEN <span>SOLUTIONS</span></div>
-  <div class="tagline">Merchandise Infrastructure Partner · Instant Quote</div>
+  <div class="tagline">Merchandise Infrastructure Partner &middot; Instant Quote</div>
 </header>
 
 <div class="container">
 
-  <!-- STEP 1 -->
-  <div class="step-label"><div class="step-num">1</div><div class="step-title">Choose Decoration Package</div></div>
-  <div class="select-wrap">
-    <select id="pkgSelect" onchange="calculate()">
-      <option value="front">Front Only</option>
-      <option value="fb">Front + Back</option>
-      <option value="fbs">Front + Back + Sleeve</option>
-    </select>
+  <!-- STEP 1: METHOD -->
+  <div class="step-label"><div class="step-num">1</div><div class="step-title">Choose Decoration Method</div></div>
+  <div class="method-tabs">
+    <div class="method-tab active" data-m="dtf" onclick="setMethod('dtf')">DTF</div>
+    <div class="method-tab" data-m="screen" onclick="setMethod('screen')">Screen Print</div>
+    <div class="method-tab" data-m="vinyl" onclick="setMethod('vinyl')">Vinyl</div>
+    <div class="method-tab" data-m="sub" onclick="setMethod('sub')">Sublimation</div>
   </div>
 
-  <!-- STEP 2 -->
-  <div class="step-label"><div class="step-num">2</div><div class="step-title">Add Items to Your Order</div></div>
+  <!-- STEP 2: OPTIONS -->
+  <div class="step-label"><div class="step-num">2</div><div class="step-title" id="step2Title">Choose Decoration Package</div></div>
+
+  <!-- DTF options -->
+  <div id="opts_dtf">
+    <div class="select-wrap">
+      <select id="dtfPkg" onchange="calculate()">
+        <option value="front">Front Only</option>
+        <option value="fb">Front + Back</option>
+        <option value="fbs_small">Front + Back + Small Sleeve Print (up to 5")</option>
+        <option value="fbs_full">Front + Back + Full-Length Sleeve Print</option>
+        <option value="f_small">Front + Small Sleeve Print</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Screen print options -->
+  <div id="opts_screen" style="display:none">
+    <div class="select-wrap">
+      <select id="spColors" onchange="calculate()">
+        <option value="1">1 Color</option>
+        <option value="2">2 Colors</option>
+        <option value="3">3 Colors</option>
+        <option value="4">4 Colors (72+ pieces)</option>
+        <option value="5">5 Colors (72+ pieces)</option>
+        <option value="6">6 Colors (72+ pieces)</option>
+      </select>
+    </div>
+    <div class="select-wrap">
+      <select id="spLocations" onchange="calculate()">
+        <option value="1">One Print Location</option>
+        <option value="2">Two Print Locations</option>
+      </select>
+    </div>
+    <div class="method-note"><strong>Screen printing minimum: 24 pieces.</strong> Best value at 72+ pieces. Includes screen setup in your price.</div>
+    <div class="warn-note" id="spWarn"></div>
+  </div>
+
+  <!-- Vinyl options -->
+  <div id="opts_vinyl" style="display:none">
+    <div class="select-wrap">
+      <select id="vinylType" onchange="calculate()">
+        <option value="easy">Standard Vinyl (EasyWeed)</option>
+        <option value="glitter">Glitter Vinyl</option>
+      </select>
+    </div>
+    <div class="select-wrap">
+      <select id="vinylCoverage" onchange="calculate()">
+        <option value="quarter">Small Design (chest logo, name)</option>
+        <option value="half">Medium Design (half-sheet coverage)</option>
+        <option value="full">Large Design (full-sheet coverage)</option>
+      </select>
+    </div>
+    <div class="method-note">Vinyl is cut, weeded, and heat-pressed by hand. Ideal for names, numbers, and bold single-color designs.</div>
+  </div>
+
+  <!-- Sublimation options -->
+  <div id="opts_sub" style="display:none">
+    <div class="select-wrap">
+      <select id="subSize" onchange="calculate()">
+        <option value="half">Standard Print (up to 8.5 x 11)</option>
+        <option value="full">Large Print (up to 11 x 17)</option>
+      </select>
+    </div>
+    <div class="method-note"><strong>Sublimation pricing shown is for polyester-rich apparel.</strong> Mugs, tumblers, and other substrate items are quoted separately in your Blueprint Session.</div>
+  </div>
+
+  <!-- STEP 3: ITEMS -->
+  <div class="step-label"><div class="step-num">3</div><div class="step-title">Add Items to Your Order</div></div>
   <div id="catalogAccordion"></div>
   <button class="clear-btn" onclick="clearAll()">Clear all quantities</button>
 
   <!-- SUMMARY -->
   <div class="summary-card">
-    <div class="summary-hdr">Order Summary</div>
+    <div class="summary-hdr"><span>Order Summary</span><span class="owner-toggle" onclick="toggleOwner()">&middot;&middot;&middot;</span></div>
+    <div class="owner-panel" id="ownerPanel">
+      <div class="owner-row">
+        <label>Adjustment</label>
+        <div class="owner-seg">
+          <span id="segDollar" class="on" onclick="setAdjMode('dollar')">$</span>
+          <span id="segPct" onclick="setAdjMode('pct')">%</span>
+        </div>
+        <input class="owner-input" id="adjValue" type="number" min="0" value="0" placeholder="0" oninput="calculate()">
+        <button class="clear-btn" style="margin-top:0" onclick="clearAdj()">Reset</button>
+      </div>
+    </div>
     <div class="summary-body">
+      <div class="summary-line"><span class="lbl">Method</span><span class="val" id="methodLabel">DTF</span></div>
       <div class="summary-line"><span class="lbl">Total Pieces</span><span class="val" id="totalPcs">0</span></div>
-      <div class="summary-line"><span class="lbl">Quantity Tier</span><span class="val"><span class="tier-badge" id="tierBadge">1–11 pcs</span></span></div>
+      <div class="summary-line"><span class="lbl">Quantity Tier</span><span class="val"><span class="tier-badge" id="tierBadge">&mdash;</span></span></div>
       <div class="summary-line"><span class="lbl">Decoration</span><span class="val" id="decoLabel">Front Only</span></div>
       <table class="line-items">
-        <thead><tr><th>Item</th><th>Size</th><th>Qty × Price</th><th>Total</th></tr></thead>
+        <thead><tr><th>Item</th><th>Size</th><th>Qty &times; Price</th><th>Total</th></tr></thead>
         <tbody id="lineBody"></tbody>
       </table>
+      <div class="summary-line" id="adjLine" style="display:none"><span class="lbl adj-line">Adjustment</span><span class="val adj-line" id="adjAmt"></span></div>
       <div class="summary-line total-line" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--blue)">
         <span class="lbl">Order Total</span><span class="val" id="orderTotal">$0.00</span>
       </div>
@@ -146,40 +240,50 @@ footer a{color:var(--blue-lt);text-decoration:none}
 
 <footer>
   Prices shown per unit and include decoration, materials &amp; production.<br>
-  Shipping quoted separately. Larger sizes reflect actual blank cost differences.<br><br>
-  <a href="https://chozensolutions.carrd.co">chozensolutions.carrd.co</a> &nbsp;·&nbsp; Macon, GA
+  Shipping quoted separately. Larger sizes reflect actual blank cost differences.<br>
+  Embroidery, UV DTF decals, and business cards quoted in your Blueprint Session.<br><br>
+  <a href="https://chozensolutions.carrd.co">chozensolutions.carrd.co</a> &nbsp;&middot;&nbsp; Macon, GA
 </footer>
 
 <script>
-// ── PRICING ENGINE ──────────────────────────────────────────────────────────
-const OVERHEAD = { "1-11":3.97, "12-49":7.47, "50-99":6.47, "100+":5.47 };
+// == PRICING CONSTANTS ==========================================
 const PACKAGING = 0.45;
+const DTF_OVERHEAD = { "1-11":6.47, "12-49":5.47, "50-99":4.47, "100+":3.47 };
+// DTF image rates: gang-sheet economics, $5.50/image; small sleeve $2.50
+const DTF_IMG = { front:5.50, back:5.50, sleeveSmall:2.50, sleeveFull:5.50 };
+// DTF labor by tier (front/back/sleeve dollars)
+const DTF_LABOR = {"1-11":{f:12,b:8,s:4},"12-49":{f:10,b:6,s:2},"50-99":{f:8,b:4,s:2},"100+":{f:6,b:3,s:2}};
 
-function dtfImage(tier, pkg) {
-  let front, back, sleeve;
-  if (tier === "1-11") { front=8.00; back=8.00; sleeve=2.38; }
-  else { front=3.50; back=3.50; sleeve=1.06; }
-  if (pkg==="front") return front;
-  if (pkg==="fb")    return front+back;
-  return front+back+sleeve;
-}
-function touchLabor(tier, pkg) {
-  const R = {"1-11":{f:12,b:8,s:4},"12-49":{f:10,b:6,s:2},"50-99":{f:8,b:4,s:2},"100+":{f:6,b:3,s:2}};
-  const r = R[tier];
-  if (pkg==="front") return r.f;
-  if (pkg==="fb")    return r.f+r.b;
-  return r.f+r.b+r.s;
-}
-function unitPrice(blank, tier, pkg) {
-  const cost = blank + dtfImage(tier,pkg) + touchLabor(tier,pkg) + PACKAGING + OVERHEAD[tier];
-  let p = Math.ceil(cost*2)/2;
-  if (p%1===0.5) p+=0.5;
-  return p;
-}
-function getTier(n) { return n>=100?"100+":n>=50?"50-99":n>=12?"12-49":"1-11"; }
-function fmt(n) { return "$"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+// Screen print vendor cost per print location (qty tier x colors)
+const SP_COST = {
+  "24-47":  {1:1.90,2:2.30,3:2.70,4:null,5:null,6:null},
+  "48-71":  {1:1.55,2:1.90,3:2.00,4:null,5:null,6:null},
+  "72-143": {1:1.40,2:1.60,3:1.75,4:1.90,5:2.05,6:2.10},
+  "144-239":{1:1.30,2:1.55,3:1.60,4:1.80,5:1.95,6:2.00},
+  "240-359":{1:1.25,2:1.45,3:1.55,4:1.70,5:1.85,6:1.95},
+  "360-499":{1:1.10,2:1.25,3:1.35,4:1.50,5:1.65,6:1.80},
+  "500-1199":{1:1.05,2:1.20,3:1.30,4:1.40,5:1.60,6:1.75}
+};
+const SP_SCREEN_CHARGE = 15; // per color, one-time
+// Markup matrix: garment tier x qty tier (as multiplier percents)
+const SP_MARKUP = {
+  basic:   {"24-47":1.80,"48-71":1.70,"72-143":1.60,"144-239":1.45,"240-359":1.30,"360-499":1.15,"500-1199":1.00},
+  mid:     {"24-47":1.50,"48-71":1.40,"72-143":1.30,"144-239":1.20,"240-359":1.10,"360-499":1.00,"500-1199":0.90},
+  premium: {"24-47":1.20,"48-71":1.10,"72-143":1.00,"144-239":0.90,"240-359":0.85,"360-499":0.80,"500-1199":0.75}
+};
 
-// ── CATALOG ─────────────────────────────────────────────────────────────────
+// Vinyl & Sublimation (cost-based, single adjustable markup)
+const SOFT_MARKUP = 0.60; // 60 percent markup on decoration cost
+const VINYL = {
+  easy:    {material:6.00},   // per full 11.8x12 sheet
+  glitter: {material:8.83}
+};
+const VINYL_LABOR_FULL = 12.00;
+const VINYL_FRACTION = { quarter:0.25, half:0.5, full:1 };
+const SUB = { half:{paper:0.17, ink:0.30, labor:4.50}, full:{paper:0.34, ink:0.60, labor:9.00} };
+const GARMENT_MARKUP_SOFT = 1.5; // blank markup for vinyl/sub garments
+
+// == CATALOG ====================================================
 const CATALOG = [
   { cat:"Short Sleeve Tees", items:[
     { id:"64000",  name:"Gildan Softstyle Tee",          style:"64000",   sizes:{"XS":3.58,"S":3.58,"M":3.58,"L":3.58,"XL":3.58,"2XL":5.33,"3XL":6.76,"4XL":6.76,"5XL":6.76} },
@@ -203,7 +307,7 @@ const CATALOG = [
   ]},
   { cat:"Polos & Jackets", items:[
     { id:"8800",   name:"Gildan DryBlend Jersey Polo",    style:"8800",    sizes:{"S":7.55,"M":7.55,"L":7.55,"XL":7.55,"2XL":10.00,"3XL":11.51,"4XL":11.51,"5XL":11.51} },
-    { id:"88181",  name:"CORE365 Performance Piqué Polo", style:"88181",   sizes:{"XS":9.27,"S":9.27,"M":9.27,"L":9.27,"XL":9.27,"2XL":10.30,"3XL":12.36,"4XL":13.39,"5XL":14.42,"6XL":15.45} },
+    { id:"88181",  name:"CORE365 Performance Piqu&eacute; Polo", style:"88181",   sizes:{"XS":9.27,"S":9.27,"M":9.27,"L":9.27,"XL":9.27,"2XL":10.30,"3XL":12.36,"4XL":13.39,"5XL":14.42,"6XL":15.45} },
     { id:"TT77",   name:"Team 365 Packable Anorak Jacket",style:"TT77",    sizes:{"XS":18.02,"S":18.02,"M":18.02,"L":18.02,"XL":18.02,"2XL":19.05,"3XL":20.08,"4XL":21.11} },
   ]},
   { cat:"Bags", items:[
@@ -212,182 +316,276 @@ const CATALOG = [
   ]},
 ];
 
-// ── BUILD ACCORDION ─────────────────────────────────────────────────────────
-function buildAccordion() {
+// == STATE ======================================================
+let METHOD = "dtf";
+let ADJ_MODE = "dollar";
+
+// == HELPERS ====================================================
+function fmt(n){ return "$"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+function roundHalf(p){ let r = Math.ceil(p*2)/2; if(r%1===0.5) r+=0.5; return r; }
+function dtfTier(n){ return n>=100?"100+":n>=50?"50-99":n>=12?"12-49":"1-11"; }
+function spTier(n){
+  if(n<24) return null;
+  if(n<=47) return "24-47"; if(n<=71) return "48-71"; if(n<=143) return "72-143";
+  if(n<=239) return "144-239"; if(n<=359) return "240-359"; if(n<=499) return "360-499";
+  return "500-1199";
+}
+function garmentTier(blank){ return blank<5?"basic":blank<=10?"mid":"premium"; }
+
+// == UNIT PRICE ENGINES =========================================
+function dtfUnit(blank, tier, pkg){
+  const L = DTF_LABOR[tier];
+  let img=0, labor=0;
+  if(pkg==="front"){ img=DTF_IMG.front; labor=L.f; }
+  else if(pkg==="fb"){ img=DTF_IMG.front+DTF_IMG.back; labor=L.f+L.b; }
+  else if(pkg==="fbs_small"){ img=DTF_IMG.front+DTF_IMG.back+DTF_IMG.sleeveSmall; labor=L.f+L.b+L.s; }
+  else if(pkg==="fbs_full"){ img=DTF_IMG.front+DTF_IMG.back+DTF_IMG.sleeveFull; labor=L.f+L.b+L.s; }
+  else if(pkg==="f_small"){ img=DTF_IMG.front+DTF_IMG.sleeveSmall; labor=L.f+L.s; }
+  return roundHalf(blank + img + labor + PACKAGING + DTF_OVERHEAD[tier]);
+}
+function spUnit(blank, tier, colors, locations, totalQty){
+  const perLoc = SP_COST[tier][colors];
+  if(perLoc===null || perLoc===undefined) return null;
+  const printCost = perLoc * locations;
+  const screens = (SP_SCREEN_CHARGE * colors * locations) / totalQty;
+  const cost = blank + printCost + screens + PACKAGING;
+  const mult = 1 + SP_MARKUP[garmentTier(blank)][tier];
+  return roundHalf(cost * mult);
+}
+function vinylUnit(blank, type, coverage){
+  const frac = VINYL_FRACTION[coverage];
+  const decoCost = (VINYL[type].material + VINYL_LABOR_FULL) * frac;
+  const deco = decoCost * (1 + SOFT_MARKUP);
+  return roundHalf(blank * GARMENT_MARKUP_SOFT + deco + PACKAGING);
+}
+function subUnit(blank, size){
+  const c = SUB[size];
+  const decoCost = c.paper + c.ink + c.labor;
+  const deco = decoCost * (1 + SOFT_MARKUP);
+  return roundHalf(blank * GARMENT_MARKUP_SOFT + deco + PACKAGING);
+}
+
+// == UI BUILD ===================================================
+function buildAccordion(){
   const acc = document.getElementById("catalogAccordion");
   acc.innerHTML = "";
   CATALOG.forEach((cat, ci) => {
     const catDiv = document.createElement("div");
-    catDiv.className = "cat-block";
-    catDiv.id = "cat_"+ci;
-
+    catDiv.className = "cat-block"; catDiv.id = "cat_"+ci;
     const hdr = document.createElement("div");
     hdr.className = "cat-header";
-    hdr.innerHTML = `<span class="cat-name">${cat.cat}</span><div style="display:flex;align-items:center;gap:10px"><span class="cat-count" id="catcount_${ci}"></span><span class="cat-chevron" id="chevron_${ci}">▾</span></div>`;
+    hdr.innerHTML = `<span class="cat-name">${cat.cat}</span><div style="display:flex;align-items:center;gap:10px"><span class="cat-count" id="catcount_${ci}"></span><span class="cat-chevron" id="chevron_${ci}">\u25be</span></div>`;
     hdr.onclick = () => toggleCat(ci);
-
     const body = document.createElement("div");
-    body.className = "cat-body";
-    body.id = "catbody_"+ci;
-
+    body.className = "cat-body"; body.id = "catbody_"+ci;
     cat.items.forEach((prod, pi) => {
       const pb = document.createElement("div");
-      pb.className = "prod-block";
-      pb.id = `prod_${ci}_${pi}`;
-
+      pb.className = "prod-block"; pb.id = `prod_${ci}_${pi}`;
       const ph = document.createElement("div");
       ph.className = "prod-header";
       ph.innerHTML = `<div><div class="prod-name">${prod.name}</div><div class="prod-style">Style ${prod.style}</div></div><span class="prod-subtotal" id="sub_${ci}_${pi}"></span>`;
       ph.onclick = () => toggleProd(ci, pi);
-
       const ps = document.createElement("div");
-      ps.className = "prod-sizes";
-      ps.id = `sizes_${ci}_${pi}`;
-
+      ps.className = "prod-sizes"; ps.id = `sizes_${ci}_${pi}`;
       const grid = document.createElement("div");
       grid.className = "size-grid";
-
-      Object.entries(prod.sizes).forEach(([sz, blank]) => {
+      Object.entries(prod.sizes).forEach(([sz]) => {
         const id = `qty_${ci}_${pi}_${sz.replace(/\s/g,"_")}`;
         const sr = document.createElement("div");
-        sr.className = "size-row";
-        sr.id = `row_${id}`;
-        sr.innerHTML = `<span class="size-label">${sz}</span><div class="qty-controls"><button class="qty-btn" onclick="adj('${id}',-1,event)">−</button><input class="qty-input" id="${id}" type="number" min="0" value="0" oninput="calculate()"><button class="qty-btn" onclick="adj('${id}',1,event)">+</button></div>`;
+        sr.className = "size-row"; sr.id = `row_${id}`;
+        sr.innerHTML = `<span class="size-label">${sz}</span><div class="qty-controls"><button class="qty-btn" onclick="adj('${id}',-1,event)">\u2212</button><input class="qty-input" id="${id}" type="number" min="0" value="0" oninput="calculate()"><button class="qty-btn" onclick="adj('${id}',1,event)">+</button></div>`;
         grid.appendChild(sr);
       });
-
-      ps.appendChild(grid);
-      pb.appendChild(ph);
-      pb.appendChild(ps);
-      body.appendChild(pb);
+      ps.appendChild(grid); pb.appendChild(ph); pb.appendChild(ps); body.appendChild(pb);
     });
-
-    catDiv.appendChild(hdr);
-    catDiv.appendChild(body);
-    acc.appendChild(catDiv);
+    catDiv.appendChild(hdr); catDiv.appendChild(body); acc.appendChild(catDiv);
   });
-
-  // Open first category by default
   toggleCat(0);
 }
-
-function toggleCat(ci) {
+function toggleCat(ci){
   const body = document.getElementById("catbody_"+ci);
   const chev = document.getElementById("chevron_"+ci);
   const isOpen = body.classList.contains("open");
   body.classList.toggle("open", !isOpen);
   chev.classList.toggle("open", !isOpen);
 }
-
-function toggleProd(ci, pi) {
-  const sizes = document.getElementById(`sizes_${ci}_${pi}`);
-  sizes.classList.toggle("open");
-}
-
-function adj(id, d, e) {
+function toggleProd(ci, pi){ document.getElementById(`sizes_${ci}_${pi}`).classList.toggle("open"); }
+function adj(id, d, e){
   e && e.stopPropagation();
   const inp = document.getElementById(id);
-  if (!inp) return;
+  if(!inp) return;
   inp.value = Math.max(0, (parseInt(inp.value)||0)+d);
-  document.getElementById("row_"+id).classList.toggle("active", parseInt(inp.value)>0);
   calculate();
 }
-
-function clearAll() {
+function clearAll(){
   document.querySelectorAll(".qty-input").forEach(inp => { inp.value=0; });
-  document.querySelectorAll(".size-row").forEach(r => r.classList.remove("active"));
   calculate();
 }
 
-// ── CALCULATE ───────────────────────────────────────────────────────────────
-function calculate() {
-  const pkg = document.getElementById("pkgSelect").value;
-  const pkgLabels = {front:"Front Only",fb:"Front + Back",fbs:"Front + Back + Sleeve"};
-  const tierLabels = {"1-11":"1–11 pcs","12-49":"12–49 pcs","50-99":"50–99 pcs","100+":"100+ pcs"};
+// == METHOD SWITCHING ===========================================
+function setMethod(m){
+  METHOD = m;
+  document.querySelectorAll(".method-tab").forEach(t => t.classList.toggle("active", t.dataset.m===m));
+  document.getElementById("opts_dtf").style.display = m==="dtf" ? "" : "none";
+  document.getElementById("opts_screen").style.display = m==="screen" ? "" : "none";
+  document.getElementById("opts_vinyl").style.display = m==="vinyl" ? "" : "none";
+  document.getElementById("opts_sub").style.display = m==="sub" ? "" : "none";
+  const titles = {dtf:"Choose Decoration Package", screen:"Choose Colors & Locations", vinyl:"Choose Vinyl Type & Design Size", sub:"Choose Print Size"};
+  document.getElementById("step2Title").textContent = titles[m];
+  calculate();
+}
 
-  // Collect all quantities
+// == OWNER ADJUSTMENT ===========================================
+function toggleOwner(){ document.getElementById("ownerPanel").classList.toggle("open"); }
+function setAdjMode(m){
+  ADJ_MODE = m;
+  document.getElementById("segDollar").classList.toggle("on", m==="dollar");
+  document.getElementById("segPct").classList.toggle("on", m==="pct");
+  calculate();
+}
+function clearAdj(){ document.getElementById("adjValue").value = 0; calculate(); }
+
+// == CALCULATE ==================================================
+function calculate(){
+  const methodLabels = {dtf:"DTF", screen:"Screen Print", vinyl:"Vinyl (HTV)", sub:"Sublimation"};
+  document.getElementById("methodLabel").textContent = methodLabels[METHOD];
+
   let totalPcs = 0;
-  const entries = []; // {prodName, style, sz, blank, qty}
-
+  const entries = [];
   CATALOG.forEach((cat, ci) => {
     cat.items.forEach((prod, pi) => {
       Object.entries(prod.sizes).forEach(([sz, blank]) => {
         const id = `qty_${ci}_${pi}_${sz.replace(/\s/g,"_")}`;
         const inp = document.getElementById(id);
-        if (!inp) return;
+        if(!inp) return;
         const qty = parseInt(inp.value)||0;
-        if (qty > 0) {
-          totalPcs += qty;
-          entries.push({prodName:prod.name, style:prod.style, sz, blank, qty, ci, pi});
-        }
+        if(qty > 0){ totalPcs += qty; entries.push({prodName:prod.name, sz, blank, qty}); }
         document.getElementById("row_"+id).classList.toggle("active", qty>0);
       });
     });
   });
 
-  const tier = getTier(totalPcs);
+  // Per-method setup
+  let decoLabel = "", tierLabel = "\u2014", unitFn = null, spWarnMsg = "";
+  if(METHOD==="dtf"){
+    const pkg = document.getElementById("dtfPkg").value;
+    const pkgLabels = {front:"Front Only", fb:"Front + Back", fbs_small:"Front + Back + Small Sleeve", fbs_full:"Front + Back + Full Sleeve", f_small:"Front + Small Sleeve"};
+    decoLabel = pkgLabels[pkg];
+    const tier = dtfTier(totalPcs);
+    tierLabel = {"1-11":"1\u201311 pcs","12-49":"12\u201349 pcs","50-99":"50\u201399 pcs","100+":"100+ pcs"}[tier];
+    unitFn = (blank) => dtfUnit(blank, tier, pkg);
+  } else if(METHOD==="screen"){
+    const colors = parseInt(document.getElementById("spColors").value);
+    const locations = parseInt(document.getElementById("spLocations").value);
+    decoLabel = `${colors} Color${colors>1?"s":""} \u00b7 ${locations} Location${locations>1?"s":""}`;
+    const tier = spTier(totalPcs);
+    if(tier===null && totalPcs>0){
+      spWarnMsg = `Screen printing requires a minimum of <strong>24 pieces</strong>. You have ${totalPcs}. Add ${24-totalPcs} more, or switch to <strong>DTF</strong>, no minimums there.`;
+      tierLabel = "Below minimum";
+      unitFn = () => null;
+    } else if(tier){
+      if(colors>3 && (tier==="24-47"||tier==="48-71")){
+        spWarnMsg = `<strong>${colors}-color printing requires 72+ pieces.</strong> Reduce colors to 3 or fewer, or increase quantity.`;
+        unitFn = () => null;
+        tierLabel = tier+" pcs";
+      } else {
+        tierLabel = tier+" pcs";
+        unitFn = (blank) => spUnit(blank, tier, colors, locations, totalPcs);
+      }
+    }
+  } else if(METHOD==="vinyl"){
+    const type = document.getElementById("vinylType").value;
+    const cov = document.getElementById("vinylCoverage").value;
+    const covLabels = {quarter:"Small Design", half:"Medium Design", full:"Large Design"};
+    decoLabel = (type==="easy"?"Standard Vinyl":"Glitter Vinyl")+" \u00b7 "+covLabels[cov];
+    tierLabel = totalPcs+" pcs";
+    unitFn = (blank) => vinylUnit(blank, type, cov);
+  } else if(METHOD==="sub"){
+    const size = document.getElementById("subSize").value;
+    decoLabel = size==="full" ? "Large Print (11x17)" : "Standard Print (8.5x11)";
+    tierLabel = totalPcs+" pcs";
+    unitFn = (blank) => subUnit(blank, size);
+  }
 
-  // Update per-product subtotals and highlights
+  const spWarn = document.getElementById("spWarn");
+  if(spWarn){ spWarn.innerHTML = spWarnMsg; spWarn.classList.toggle("visible", !!spWarnMsg); }
+
+  // Per-product subtotals + category counts
   CATALOG.forEach((cat, ci) => {
-    let catTotal = 0;
     let catPcs = 0;
     cat.items.forEach((prod, pi) => {
-      let prodTotal = 0;
-      let prodPcs = 0;
+      let prodTotal = 0, prodPcs = 0;
       Object.entries(prod.sizes).forEach(([sz, blank]) => {
         const id = `qty_${ci}_${pi}_${sz.replace(/\s/g,"_")}`;
-        const inp = document.getElementById(id);
-        const qty = parseInt(inp?.value)||0;
-        if (qty > 0) {
-          prodTotal += unitPrice(blank, tier, pkg) * qty;
+        const qty = parseInt(document.getElementById(id)?.value)||0;
+        if(qty > 0){
+          const up = unitFn ? unitFn(blank) : null;
+          if(up!==null){ prodTotal += up*qty; }
           prodPcs += qty;
         }
       });
       const subEl = document.getElementById(`sub_${ci}_${pi}`);
-      if (subEl) subEl.textContent = prodPcs > 0 ? fmt(prodTotal) : "";
-      const pb = document.getElementById(`prod_${ci}_${pi}`);
-      if (pb) pb.classList.toggle("has-items", prodPcs > 0);
-      catTotal += prodTotal;
+      if(subEl) subEl.textContent = prodPcs > 0 && prodTotal > 0 ? fmt(prodTotal) : "";
+      document.getElementById(`prod_${ci}_${pi}`)?.classList.toggle("has-items", prodPcs > 0);
       catPcs += prodPcs;
     });
     const cc = document.getElementById("catcount_"+ci);
-    if (cc) cc.textContent = catPcs > 0 ? `${catPcs} pc${catPcs>1?"s":""}` : "";
-    const ch = document.getElementById("cat_"+ci);
-    if (ch) ch.querySelector(".cat-header").classList.toggle("has-items", catPcs > 0);
+    if(cc) cc.textContent = catPcs > 0 ? `${catPcs} pc${catPcs>1?"s":""}` : "";
+    document.getElementById("cat_"+ci)?.querySelector(".cat-header").classList.toggle("has-items", catPcs > 0);
   });
 
-  // Summary
   document.getElementById("totalPcs").textContent = totalPcs;
-  document.getElementById("tierBadge").textContent = tierLabels[tier];
-  document.getElementById("decoLabel").textContent = pkgLabels[pkg];
+  document.getElementById("tierBadge").textContent = tierLabel;
+  document.getElementById("decoLabel").textContent = decoLabel;
 
   const tbody = document.getElementById("lineBody");
   tbody.innerHTML = "";
-  let grand = 0;
-
+  let grand = 0, allPriced = true;
   entries.forEach(({prodName, sz, blank, qty}) => {
-    const up = unitPrice(blank, tier, pkg);
-    const line = up * qty;
-    grand += line;
+    const up = unitFn ? unitFn(blank) : null;
+    if(up===null){ allPriced = false; return; }
+    const line = up*qty; grand += line;
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prodName}</td><td>${sz}</td><td>${qty} × ${fmt(up)}</td><td>${fmt(line)}</td>`;
+    tr.innerHTML = `<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prodName}</td><td>${sz}</td><td>${qty} \u00d7 ${fmt(up)}</td><td>${fmt(line)}</td>`;
     tbody.appendChild(tr);
   });
 
-  document.getElementById("orderTotal").textContent = fmt(grand);
+  // Owner adjustment
+  const adjVal = parseFloat(document.getElementById("adjValue").value)||0;
+  let adjAmt = 0;
+  if(adjVal > 0 && grand > 0){
+    adjAmt = ADJ_MODE==="dollar" ? Math.min(adjVal, grand) : grand*(Math.min(adjVal,100)/100);
+  }
+  const adjLine = document.getElementById("adjLine");
+  if(adjAmt > 0){
+    adjLine.style.display = "flex";
+    document.getElementById("adjAmt").textContent = "\u2212"+fmt(adjAmt);
+  } else { adjLine.style.display = "none"; }
 
-  // Tier tip
+  document.getElementById("orderTotal").textContent = fmt(Math.max(0, grand-adjAmt));
+
+  // Tier tips
   const tip = document.getElementById("tierTip");
-  if (totalPcs === 0) { tip.classList.remove("visible"); }
-  else if (totalPcs < 12) { tip.innerHTML=`💡 Add <strong>${12-totalPcs} more piece${12-totalPcs>1?"s":""}</strong> to unlock 12–49 pricing.`; tip.classList.add("visible"); }
-  else if (totalPcs < 50) { tip.innerHTML=`💡 Add <strong>${50-totalPcs} more piece${50-totalPcs>1?"s":""}</strong> to unlock 50–99 pricing.`; tip.classList.add("visible"); }
-  else if (totalPcs < 100) { tip.innerHTML=`💡 Add <strong>${100-totalPcs} more piece${100-totalPcs>1?"s":""}</strong> to unlock 100+ pricing, and ask about <strong>Door 2</strong>.`; tip.classList.add("visible"); }
-  else { tip.innerHTML=`✅ You're at maximum volume pricing. <strong>Ask about Door 2</strong>, a managed merchandise partnership built for brands at your scale.`; tip.classList.add("visible"); }
+  tip.classList.remove("visible");
+  if(totalPcs > 0){
+    if(METHOD==="dtf"){
+      if(totalPcs < 12){ tip.innerHTML=`\ud83d\udca1 Add <strong>${12-totalPcs} more piece${12-totalPcs>1?"s":""}</strong> to unlock 12\u201349 pricing.`; tip.classList.add("visible"); }
+      else if(totalPcs < 50){ tip.innerHTML=`\ud83d\udca1 Add <strong>${50-totalPcs} more piece${50-totalPcs>1?"s":""}</strong> to unlock 50\u201399 pricing.`; tip.classList.add("visible"); }
+      else if(totalPcs < 100){ tip.innerHTML=`\ud83d\udca1 Add <strong>${100-totalPcs} more piece${100-totalPcs>1?"s":""}</strong> to unlock 100+ pricing, and ask about <strong>Door 2</strong>.`; tip.classList.add("visible"); }
+      else { tip.innerHTML=`\u2705 You're at maximum volume pricing. <strong>Ask about Door 2</strong>, a managed merchandise partnership built for brands at your scale.`; tip.classList.add("visible"); }
+      if(totalPcs >= 24){ tip.innerHTML += `<br>\ud83d\udca1 At ${totalPcs} pieces, <strong>screen printing</strong> may save you more. Tap the Screen Print tab to compare.`; tip.classList.add("visible"); }
+    } else if(METHOD==="screen" && allPriced && totalPcs>=24){
+      const t = spTier(totalPcs);
+      const nexts = {"24-47":48,"48-71":72,"72-143":144,"144-239":240,"240-359":360,"360-499":500};
+      if(nexts[t]){ tip.innerHTML=`\ud83d\udca1 Add <strong>${nexts[t]-totalPcs} more piece${nexts[t]-totalPcs>1?"s":""}</strong> to unlock the next pricing tier.`; tip.classList.add("visible"); }
+      if(totalPcs >= 100){ tip.innerHTML += (tip.innerHTML?"<br>":"")+`\u2705 <strong>Ask about Door 2</strong>, a managed merchandise partnership built for brands at your scale.`; tip.classList.add("visible"); }
+    }
+  }
 }
 
-// ── INIT ─────────────────────────────────────────────────────────────────────
+// == INIT ==
 buildAccordion();
-calculate();
+setMethod("dtf");
 </script>
 </body>
 </html>
