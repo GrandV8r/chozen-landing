@@ -142,6 +142,27 @@ footer a{color:var(--blue-lt);text-decoration:none}
         <option value="f_small">Front + Small Sleeve Print</option>
       </select>
     </div>
+    <div class="select-wrap">
+      <select id="dtfEffect" onchange="onEffectChange()">
+        <option value="none">No Specialty Effect</option>
+        <option value="goldfoil">Gold Foil</option>
+        <option value="glitter">Glitter DTF</option>
+        <option value="glow">Glow in the Dark</option>
+        <option value="reflective">Reflective</option>
+        <option value="iridescent">Iridescent</option>
+        <option value="pearl">Pearl</option>
+        <option value="thermochromic">Thermochromic (Color Change)</option>
+        <option value="puff">Puff Print (Raised)</option>
+      </select>
+    </div>
+    <div class="select-wrap" id="effectSizeWrap" style="display:none">
+      <select id="dtfEffectSize" onchange="calculate()">
+        <option value="chest">Chest Hit (up to 4x4)</option>
+        <option value="standard">Standard (up to 10x10)</option>
+        <option value="full">Full Size (up to 12x12)</option>
+      </select>
+    </div>
+    <div class="method-note" id="effectNote" style="display:none">Specialty effect is added on top of your decoration package, applied to one print location per piece.</div>
   </div>
 
   <!-- Screen print options -->
@@ -192,7 +213,7 @@ footer a{color:var(--blue-lt);text-decoration:none}
         <option value="full">Large Print (up to 11 x 17)</option>
       </select>
     </div>
-    <div class="method-note"><strong>Sublimation pricing shown is for polyester-rich apparel.</strong> Mugs, tumblers, and other substrate items are quoted separately in your Blueprint Session.</div>
+    <div class="method-note"><strong>Apparel pricing above applies to polyester-rich garments.</strong> Sublimation mugs are priced separately below, by the mug, not by garment size.</div>
   </div>
 
   <!-- STEP 3: ITEMS -->
@@ -253,6 +274,20 @@ const DTF_OVERHEAD = { "1-11":6.47, "12-49":5.47, "50-99":4.47, "100+":3.47 };
 const DTF_IMG = { front:5.50, back:5.50, sleeveSmall:2.50, sleeveFull:5.50 };
 // DTF labor by tier (front/back/sleeve dollars)
 const DTF_LABOR = {"1-11":{f:12,b:8,s:4},"12-49":{f:10,b:6,s:2},"50-99":{f:8,b:4,s:2},"100+":{f:6,b:3,s:2}};
+
+// DTF specialty effects: flat adder per piece, cost $0.10/sq in, 75% markup, one location
+const DTF_EFFECT_ADDER = { none:0, chest:3.00, standard:18.00, full:26.00 };
+const DTF_PUFF_ADDER = 13.00; // flat regardless of size, per Davis 2026-07-18
+
+// Sublimation mugs: JP Plus cost basis, direct tier price card (blank cost baked in)
+const MUG_PRICE = {
+  economy:    { "1-11":18.00, "12-49":16.00, "50-99":14.50, "100+":13.00 },
+  innercolor: { "1-11":21.00, "12-49":19.00, "50-99":17.00, "100+":15.50 }
+};
+const MUG_CATALOG = [
+  { id:"mug_economy", name:"Economy Sublimation Mug", style:"XP8438", type:"economy", sizes:{"11oz":0,"15oz":0} },
+  { id:"mug_inner",   name:"15oz Inner Color Mug",    style:"XP8541", type:"innercolor", sizes:{"15oz":0} },
+];
 
 // Screen print vendor cost per print location (qty tier x colors)
 const SP_COST = {
@@ -333,7 +368,7 @@ function spTier(n){
 function garmentTier(blank){ return blank<5?"basic":blank<=10?"mid":"premium"; }
 
 // == UNIT PRICE ENGINES =========================================
-function dtfUnit(blank, tier, pkg){
+function dtfUnit(blank, tier, pkg, effect, effectSize){
   const L = DTF_LABOR[tier];
   let img=0, labor=0;
   if(pkg==="front"){ img=DTF_IMG.front; labor=L.f; }
@@ -341,7 +376,13 @@ function dtfUnit(blank, tier, pkg){
   else if(pkg==="fbs_small"){ img=DTF_IMG.front+DTF_IMG.back+DTF_IMG.sleeveSmall; labor=L.f+L.b+L.s; }
   else if(pkg==="fbs_full"){ img=DTF_IMG.front+DTF_IMG.back+DTF_IMG.sleeveFull; labor=L.f+L.b+L.s; }
   else if(pkg==="f_small"){ img=DTF_IMG.front+DTF_IMG.sleeveSmall; labor=L.f+L.s; }
-  return roundHalf(blank + img + labor + PACKAGING + DTF_OVERHEAD[tier]);
+  let effectAdd = 0;
+  if(effect==="puff") effectAdd = DTF_PUFF_ADDER;
+  else if(effect && effect!=="none") effectAdd = DTF_EFFECT_ADDER[effectSize] || 0;
+  return roundHalf(blank + img + labor + PACKAGING + DTF_OVERHEAD[tier] + effectAdd);
+}
+function mugUnit(type, tier){
+  return MUG_PRICE[type][tier];
 }
 function spUnit(blank, tier, colors, locations, totalQty){
   const perLoc = SP_COST[tier][colors];
@@ -401,6 +442,51 @@ function buildAccordion(){
     catDiv.appendChild(hdr); catDiv.appendChild(body); acc.appendChild(catDiv);
   });
   toggleCat(0);
+  buildMugAccordion();
+}
+function buildMugAccordion(){
+  const acc = document.getElementById("catalogAccordion");
+  const catDiv = document.createElement("div");
+  catDiv.className = "cat-block"; catDiv.id = "mugCatBlock"; catDiv.style.display = "none";
+  const hdr = document.createElement("div");
+  hdr.className = "cat-header";
+  hdr.innerHTML = `<span class="cat-name">Sublimation Mugs</span><div style="display:flex;align-items:center;gap:10px"><span class="cat-count" id="mugcatcount"></span><span class="cat-chevron" id="mugchevron">\u25be</span></div>`;
+  hdr.onclick = () => { const b=document.getElementById("mugcatbody"); const c=document.getElementById("mugchevron"); const o=b.classList.contains("open"); b.classList.toggle("open",!o); c.classList.toggle("open",!o); };
+  const body = document.createElement("div");
+  body.className = "cat-body"; body.id = "mugcatbody";
+  const note = document.createElement("div");
+  note.className = "method-note"; note.style.margin = "0 0 8px";
+  note.innerHTML = "<strong>Inner Color Mug</strong> is available in 10 handle/rim colors. Color choice collected at checkout.";
+  body.appendChild(note);
+  MUG_CATALOG.forEach((prod, pi) => {
+    const pb = document.createElement("div");
+    pb.className = "prod-block"; pb.id = `mugprod_${pi}`;
+    const ph = document.createElement("div");
+    ph.className = "prod-header";
+    ph.innerHTML = `<div><div class="prod-name">${prod.name}</div><div class="prod-style">Style ${prod.style}</div></div><span class="prod-subtotal" id="mugsub_${pi}"></span>`;
+    ph.onclick = () => { document.getElementById(`mugsizes_${pi}`).classList.toggle("open"); };
+    const ps = document.createElement("div");
+    ps.className = "prod-sizes"; ps.id = `mugsizes_${pi}`;
+    const grid = document.createElement("div");
+    grid.className = "size-grid";
+    Object.keys(prod.sizes).forEach((sz) => {
+      const id = `mugqty_${pi}_${sz.replace(/\s/g,"_")}`;
+      const sr = document.createElement("div");
+      sr.className = "size-row"; sr.id = `row_${id}`;
+      sr.innerHTML = `<span class="size-label">${sz}</span><div class="qty-controls"><button class="qty-btn" onclick="adj('${id}',-1,event)">\u2212</button><input class="qty-input" id="${id}" type="number" min="0" value="0" oninput="calculate()"><button class="qty-btn" onclick="adj('${id}',1,event)">+</button></div>`;
+      grid.appendChild(sr);
+    });
+    ps.appendChild(grid); pb.appendChild(ph); pb.appendChild(ps); body.appendChild(pb);
+  });
+  catDiv.appendChild(hdr); catDiv.appendChild(body); acc.appendChild(catDiv);
+}
+function onEffectChange(){
+  const eff = document.getElementById("dtfEffect").value;
+  const wrap = document.getElementById("effectSizeWrap");
+  const note = document.getElementById("effectNote");
+  wrap.style.display = (eff!=="none" && eff!=="puff") ? "" : "none";
+  note.style.display = (eff!=="none") ? "" : "none";
+  calculate();
 }
 function toggleCat(ci){
   const body = document.getElementById("catbody_"+ci);
@@ -430,6 +516,8 @@ function setMethod(m){
   document.getElementById("opts_screen").style.display = m==="screen" ? "" : "none";
   document.getElementById("opts_vinyl").style.display = m==="vinyl" ? "" : "none";
   document.getElementById("opts_sub").style.display = m==="sub" ? "" : "none";
+  const mugBlock = document.getElementById("mugCatBlock");
+  if(mugBlock) mugBlock.style.display = m==="sub" ? "" : "none";
   const titles = {dtf:"Choose Decoration Package", screen:"Choose Colors & Locations", vinyl:"Choose Vinyl Type & Design Size", sub:"Choose Print Size"};
   document.getElementById("step2Title").textContent = titles[m];
   calculate();
@@ -469,11 +557,13 @@ function calculate(){
   let decoLabel = "", tierLabel = "\u2014", unitFn = null, spWarnMsg = "";
   if(METHOD==="dtf"){
     const pkg = document.getElementById("dtfPkg").value;
+    const effect = document.getElementById("dtfEffect").value;
+    const effectSize = document.getElementById("dtfEffectSize").value;
     const pkgLabels = {front:"Front Only", fb:"Front + Back", fbs_small:"Front + Back + Small Sleeve", fbs_full:"Front + Back + Full Sleeve", f_small:"Front + Small Sleeve"};
     decoLabel = pkgLabels[pkg];
     const tier = dtfTier(totalPcs);
     tierLabel = {"1-11":"1\u201311 pcs","12-49":"12\u201349 pcs","50-99":"50\u201399 pcs","100+":"100+ pcs"}[tier];
-    unitFn = (blank) => dtfUnit(blank, tier, pkg);
+    unitFn = (blank) => dtfUnit(blank, tier, pkg, effect, effectSize);
   } else if(METHOD==="screen"){
     const colors = parseInt(document.getElementById("spColors").value);
     const locations = parseInt(document.getElementById("spLocations").value);
@@ -509,6 +599,33 @@ function calculate(){
 
   const spWarn = document.getElementById("spWarn");
   if(spWarn){ spWarn.innerHTML = spWarnMsg; spWarn.classList.toggle("visible", !!spWarnMsg); }
+
+  // Mug quantities (sublimation only, priced independently of apparel tiers)
+  let mugQty = 0;
+  const mugEntries = [];
+  MUG_CATALOG.forEach((prod, pi) => {
+    let prodQty = 0;
+    Object.keys(prod.sizes).forEach((sz) => {
+      const id = `mugqty_${pi}_${sz.replace(/\s/g,"_")}`;
+      const inp = document.getElementById(id);
+      if(!inp) return;
+      const qty = parseInt(inp.value)||0;
+      document.getElementById("row_"+id)?.classList.toggle("active", qty>0);
+      if(qty > 0){ mugQty += qty; prodQty += qty; mugEntries.push({prodName:prod.name, sz, qty, type:prod.type}); }
+    });
+    document.getElementById(`mugprod_${pi}`)?.classList.toggle("has-items", prodQty > 0);
+  });
+  const mugTier = dtfTier(mugQty);
+  mugEntries.forEach(e => e.unitPrice = mugUnit(e.type, mugTier));
+  MUG_CATALOG.forEach((prod, pi) => {
+    let prodTotal = 0;
+    mugEntries.filter(e => e.type===prod.type).forEach(e => { prodTotal += e.unitPrice*e.qty; });
+    const subEl = document.getElementById(`mugsub_${pi}`);
+    if(subEl) subEl.textContent = prodTotal > 0 ? fmt(prodTotal) : "";
+  });
+  const mugCC = document.getElementById("mugcatcount");
+  if(mugCC) mugCC.textContent = mugQty > 0 ? `${mugQty} mug${mugQty>1?"s":""}` : "";
+  document.getElementById("mugCatBlock")?.querySelector(".cat-header").classList.toggle("has-items", mugQty > 0);
 
   // Per-product subtotals + category counts
   CATALOG.forEach((cat, ci) => {
@@ -549,6 +666,14 @@ function calculate(){
     tr.innerHTML = `<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prodName}</td><td>${sz}</td><td>${qty} \u00d7 ${fmt(up)}</td><td>${fmt(line)}</td>`;
     tbody.appendChild(tr);
   });
+  if(METHOD==="sub"){
+    mugEntries.forEach(({prodName, sz, qty, unitPrice}) => {
+      const line = unitPrice*qty; grand += line;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prodName}</td><td>${sz}</td><td>${qty} \u00d7 ${fmt(unitPrice)}</td><td>${fmt(line)}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
 
   // Owner adjustment
   const adjVal = parseFloat(document.getElementById("adjValue").value)||0;
