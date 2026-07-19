@@ -505,6 +505,10 @@ function adj(id, d, e){
 }
 function clearAll(){
   document.querySelectorAll(".qty-input").forEach(inp => { inp.value=0; });
+  document.getElementById("dtfEffect").value = "none";
+  document.getElementById("dtfEffectSize").value = "chest";
+  document.getElementById("effectSizeWrap").style.display = "none";
+  document.getElementById("effectNote").style.display = "none";
   calculate();
 }
 
@@ -560,7 +564,13 @@ function calculate(){
     const effect = document.getElementById("dtfEffect").value;
     const effectSize = document.getElementById("dtfEffectSize").value;
     const pkgLabels = {front:"Front Only", fb:"Front + Back", fbs_small:"Front + Back + Small Sleeve", fbs_full:"Front + Back + Full Sleeve", f_small:"Front + Small Sleeve"};
+    const effectLabels = {none:"", goldfoil:"Gold Foil", glitter:"Glitter DTF", glow:"Glow in the Dark", reflective:"Reflective", iridescent:"Iridescent", pearl:"Pearl", thermochromic:"Thermochromic", puff:"Puff Print"};
+    const sizeLabels = {chest:"Chest Hit", standard:"Standard", full:"Full Size"};
     decoLabel = pkgLabels[pkg];
+    if(effect !== "none"){
+      decoLabel += " + " + effectLabels[effect];
+      if(effect !== "puff") decoLabel += " (" + sizeLabels[effectSize] + ")";
+    }
     const tier = dtfTier(totalPcs);
     tierLabel = {"1-11":"1\u201311 pcs","12-49":"12\u201349 pcs","50-99":"50\u201399 pcs","100+":"100+ pcs"}[tier];
     unitFn = (blank) => dtfUnit(blank, tier, pkg, effect, effectSize);
