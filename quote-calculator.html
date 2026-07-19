@@ -133,7 +133,7 @@ footer a{color:var(--blue-lt);text-decoration:none}
 
   <!-- DTF options -->
   <div id="opts_dtf">
-    <div class="select-wrap">
+    <div class="select-wrap" id="pkgWrap">
       <select id="dtfPkg" onchange="calculate()">
         <option value="front">Front Only</option>
         <option value="fb">Front + Back</option>
@@ -157,12 +157,12 @@ footer a{color:var(--blue-lt);text-decoration:none}
     </div>
     <div class="select-wrap" id="effectSizeWrap" style="display:none">
       <select id="dtfEffectSize" onchange="calculate()">
-        <option value="chest">Chest Hit (up to 4x4)</option>
-        <option value="standard">Standard (up to 10x10)</option>
-        <option value="full">Full Size (up to 12x12)</option>
+        <option value="chest">Chest Hit (4"x4")</option>
+        <option value="standard">Standard (11"x11")</option>
+        <option value="full">Full Size (14"x12")</option>
       </select>
     </div>
-    <div class="method-note" id="effectNote" style="display:none">Specialty effect is added on top of your decoration package, applied to one print location per piece.</div>
+    <div class="method-note" id="effectNote" style="display:none">Specialty effect is its own decoration, one full print location per piece. It replaces the standard package above, not added on top of it.</div>
   </div>
 
   <!-- Screen print options -->
@@ -275,9 +275,10 @@ const DTF_IMG = { front:5.50, back:5.50, sleeveSmall:2.50, sleeveFull:5.50 };
 // DTF labor by tier (front/back/sleeve dollars)
 const DTF_LABOR = {"1-11":{f:12,b:8,s:4},"12-49":{f:10,b:6,s:2},"50-99":{f:8,b:4,s:2},"100+":{f:6,b:3,s:2}};
 
-// DTF specialty effects: flat adder per piece, cost $0.10/sq in, 75% markup, one location
-const DTF_EFFECT_ADDER = { none:0, chest:3.00, standard:18.00, full:26.00 };
-const DTF_PUFF_ADDER = 13.00; // flat regardless of size, per Davis 2026-07-18
+// DTF specialty effects: REPLACES the standard image/package entirely (not additive).
+// Deco cost = Jiffy vendor cost x 1.75 markup, using Jiffy's real reference sizes.
+const DTF_EFFECT_DECO = { chest:2.80, standard:21.175, full:29.40 }; // 4x4 / 11x11 / 14x12
+const DTF_PUFF_DECO = 13.00; // flat regardless of size, per Davis 2026-07-19
 
 // Sublimation mugs: JP Plus cost basis, direct tier price card (blank cost baked in)
 const MUG_PRICE = {
@@ -370,16 +371,18 @@ function garmentTier(blank){ return blank<5?"basic":blank<=10?"mid":"premium"; }
 // == UNIT PRICE ENGINES =========================================
 function dtfUnit(blank, tier, pkg, effect, effectSize){
   const L = DTF_LABOR[tier];
+  // Specialty effect REPLACES the standard package entirely: one location, its own deco cost.
+  if(effect && effect!=="none"){
+    const decoCost = effect==="puff" ? DTF_PUFF_DECO : (DTF_EFFECT_DECO[effectSize] || 0);
+    return roundHalf(blank + decoCost + L.f + PACKAGING + DTF_OVERHEAD[tier]);
+  }
   let img=0, labor=0;
   if(pkg==="front"){ img=DTF_IMG.front; labor=L.f; }
   else if(pkg==="fb"){ img=DTF_IMG.front+DTF_IMG.back; labor=L.f+L.b; }
   else if(pkg==="fbs_small"){ img=DTF_IMG.front+DTF_IMG.back+DTF_IMG.sleeveSmall; labor=L.f+L.b+L.s; }
   else if(pkg==="fbs_full"){ img=DTF_IMG.front+DTF_IMG.back+DTF_IMG.sleeveFull; labor=L.f+L.b+L.s; }
   else if(pkg==="f_small"){ img=DTF_IMG.front+DTF_IMG.sleeveSmall; labor=L.f+L.s; }
-  let effectAdd = 0;
-  if(effect==="puff") effectAdd = DTF_PUFF_ADDER;
-  else if(effect && effect!=="none") effectAdd = DTF_EFFECT_ADDER[effectSize] || 0;
-  return roundHalf(blank + img + labor + PACKAGING + DTF_OVERHEAD[tier] + effectAdd);
+  return roundHalf(blank + img + labor + PACKAGING + DTF_OVERHEAD[tier]);
 }
 function mugUnit(type, tier){
   return MUG_PRICE[type][tier];
@@ -484,8 +487,10 @@ function onEffectChange(){
   const eff = document.getElementById("dtfEffect").value;
   const wrap = document.getElementById("effectSizeWrap");
   const note = document.getElementById("effectNote");
+  const pkgWrap = document.getElementById("pkgWrap");
   wrap.style.display = (eff!=="none" && eff!=="puff") ? "" : "none";
   note.style.display = (eff!=="none") ? "" : "none";
+  pkgWrap.style.display = (eff!=="none") ? "none" : "";
   calculate();
 }
 function toggleCat(ci){
@@ -509,6 +514,7 @@ function clearAll(){
   document.getElementById("dtfEffectSize").value = "chest";
   document.getElementById("effectSizeWrap").style.display = "none";
   document.getElementById("effectNote").style.display = "none";
+  document.getElementById("pkgWrap").style.display = "";
   calculate();
 }
 
@@ -566,10 +572,11 @@ function calculate(){
     const pkgLabels = {front:"Front Only", fb:"Front + Back", fbs_small:"Front + Back + Small Sleeve", fbs_full:"Front + Back + Full Sleeve", f_small:"Front + Small Sleeve"};
     const effectLabels = {none:"", goldfoil:"Gold Foil", glitter:"Glitter DTF", glow:"Glow in the Dark", reflective:"Reflective", iridescent:"Iridescent", pearl:"Pearl", thermochromic:"Thermochromic", puff:"Puff Print"};
     const sizeLabels = {chest:"Chest Hit", standard:"Standard", full:"Full Size"};
-    decoLabel = pkgLabels[pkg];
     if(effect !== "none"){
-      decoLabel += " + " + effectLabels[effect];
+      decoLabel = effectLabels[effect];
       if(effect !== "puff") decoLabel += " (" + sizeLabels[effectSize] + ")";
+    } else {
+      decoLabel = pkgLabels[pkg];
     }
     const tier = dtfTier(totalPcs);
     tierLabel = {"1-11":"1\u201311 pcs","12-49":"12\u201349 pcs","50-99":"50\u201399 pcs","100+":"100+ pcs"}[tier];
