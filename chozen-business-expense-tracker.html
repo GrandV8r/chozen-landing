@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Business Expense Tracker | Chozen Solutions</title>
+<style>
+  :root {
+    --blue: #4767A6;
+    --brown: #935A16;
+    --tan: #EEE08B;
+    --silver: #939DB7;
+    --ink: #24303F;
+    --paper: #FAF9F5;
+    --line: #D8D3C4;
+    --danger: #A6473F;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  header {
+    background: var(--brown);
+    color: #fff;
+    padding: 28px 24px 22px;
+  }
+  header .eyebrow {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--tan);
+    margin: 0 0 6px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+  }
+  header p {
+    margin: 6px 0 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    color: #E4E9F3;
+  }
+  main {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 16px;
+    margin: 0 0 14px;
+    color: var(--brown);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-family: Arial, Helvetica, sans-serif;
+    border-bottom: 2px solid var(--tan);
+    padding-bottom: 8px;
+  }
+  form {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    align-items: end;
+  }
+  form .field { display: flex; flex-direction: column; }
+  form label {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: var(--silver);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  input, select, textarea {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .field.notes { grid-column: span 3; }
+  .field.amount { grid-column: span 1; }
+  .actions-row { grid-column: span 6; display: flex; gap: 10px; margin-top: 4px; }
+  button {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 10px 16px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+  }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { background: #3a5488; }
+  .btn-secondary { background: var(--silver); color: #fff; }
+  .btn-secondary:hover { background: #7f89a1; }
+  .btn-ghost { background: transparent; color: var(--brown); border: 1px solid var(--brown); }
+  .btn-ghost:hover { background: var(--tan); }
+  .btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); padding: 5px 10px; font-size: 12px; }
+  .btn-danger:hover { background: #f6e4e2; }
+  .btn-edit { background: transparent; color: var(--blue); border: 1px solid var(--blue); padding: 5px 10px; font-size: 12px; margin-right: 6px; }
+  .btn-edit:hover { background: #eef1f8; }
+
+  .toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .toolbar .export-group { display: flex; gap: 8px; }
+  .file-import { font-family: Arial, sans-serif; font-size: 12px; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 6px; }
+  .stat { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 14px; }
+  .stat .label { font-family: Arial, sans-serif; font-size: 11px; text-transform: uppercase; color: var(--silver); letter-spacing: 0.05em; }
+  .stat .value { font-size: 22px; font-weight: 700; color: var(--brown); margin-top: 4px; }
+
+  .cat-bars { margin-top: 14px; }
+  .cat-row { display: grid; grid-template-columns: 160px 1fr 90px; align-items: center; gap: 10px; margin-bottom: 8px; font-family: Arial, sans-serif; font-size: 13px; }
+  .cat-bar-bg { background: var(--paper); border: 1px solid var(--line); border-radius: 3px; height: 14px; overflow: hidden; }
+  .cat-bar-fill { background: var(--blue); height: 100%; }
+
+  table { width: 100%; border-collapse: collapse; font-family: Arial, Helvetica, sans-serif; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--line); }
+  th { color: var(--silver); text-transform: uppercase; font-size: 11px; letter-spacing: 0.04em; }
+  tr:hover td { background: #FBF9F2; }
+  .amount-cell { font-weight: 700; color: var(--ink); text-align: right; }
+  .empty-state { text-align: center; padding: 30px 10px; color: var(--silver); font-family: Arial, sans-serif; }
+
+  .filter-tabs { display: flex; gap: 8px; margin-bottom: 14px; font-family: Arial, sans-serif; }
+  .filter-tabs button { background: transparent; border: 1px solid var(--line); color: var(--ink); font-weight: 400; padding: 7px 14px; }
+  .filter-tabs button.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+
+  footer { text-align: center; padding: 20px; font-family: Arial, sans-serif; font-size: 11px; color: var(--silver); }
+
+  @media (max-width: 720px) {
+    form { grid-template-columns: repeat(2, 1fr); }
+    .field.notes { grid-column: span 2; }
+    .actions-row { grid-column: span 2; }
+    .summary-grid { grid-template-columns: repeat(2, 1fr); }
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tr { border-bottom: 2px solid var(--line); padding: 8px 0; }
+    td { border: none; padding: 3px 0; }
+    td::before { content: attr(data-label); font-weight: 700; display: inline-block; width: 90px; color: var(--silver); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Chozen Solutions &middot; Business Financial OS</p>
+  <h1>Business Expense Tracker</h1>
+  <p>Protect the margin. Log every cost, export it, keep it separate from personal.</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>Add an Expense</h2>
+    <form id="entry-form">
+      <div class="field">
+        <label for="f-date">Date</label>
+        <input type="date" id="f-date" required>
+      </div>
+      <div class="field">
+        <label for="f-category">Category</label>
+        <select id="f-category" required>
+          <option value="">Select</option>
+          <option>COGS &ndash; Blanks / Apparel</option>
+          <option>COGS &ndash; DTF / Printing</option>
+          <option>COGS &ndash; Shipping / Packaging</option>
+          <option>Vendor Payment</option>
+          <option>Software / Subscriptions</option>
+          <option>Marketing / Ads</option>
+          <option>Equipment</option>
+          <option>Professional Services (Legal / Accounting)</option>
+          <option>Platform Fees (Shopify / Square / Calendly)</option>
+          <option>Travel</option>
+          <option>Insurance</option>
+          <option>Miscellaneous</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-payee">Vendor / Paid To</label>
+        <input type="text" id="f-payee" placeholder="e.g. Udderly Custom">
+      </div>
+      <div class="field amount">
+        <label for="f-amount">Amount</label>
+        <input type="number" id="f-amount" step="0.01" min="0" placeholder="0.00" required>
+      </div>
+      <div class="field">
+        <label for="f-method">Method</label>
+        <select id="f-method">
+          <option>Card</option>
+          <option>Cash</option>
+          <option>Zelle</option>
+          <option>CashApp</option>
+          <option>Check</option>
+          <option>Bank Transfer</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field notes">
+        <label for="f-notes">Notes</label>
+        <input type="text" id="f-notes" placeholder="Optional">
+      </div>
+      <div class="actions-row">
+        <button type="submit" class="btn-primary" id="submit-btn">Add Expense</button>
+        <button type="button" class="btn-ghost" id="cancel-edit-btn" style="display:none;">Cancel Edit</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="filter-tabs">
+      <button data-range="month" class="active">This Month</button>
+      <button data-range="all">All Time</button>
+    </div>
+    <div class="summary-grid">
+      <div class="stat"><div class="label">Total Spent</div><div class="value" id="stat-total">$0.00</div></div>
+      <div class="stat"><div class="label">Entries</div><div class="value" id="stat-count">0</div></div>
+      <div class="stat"><div class="label">Top Category</div><div class="value" id="stat-top" style="font-size:16px;">&mdash;</div></div>
+      <div class="stat"><div class="label">Avg / Entry</div><div class="value" id="stat-avg">$0.00</div></div>
+    </div>
+    <div class="cat-bars" id="cat-bars"></div>
+  </div>
+
+  <div class="card">
+    <div class="toolbar">
+      <h2 style="border:none; margin:0; padding:0;">Expense Log</h2>
+      <div class="export-group">
+        <button class="btn-secondary" id="export-csv">Export CSV</button>
+        <button class="btn-secondary" id="export-json">Export JSON Backup</button>
+        <label class="btn-ghost file-import" style="display:inline-block; cursor:pointer;">
+          Import JSON
+          <input type="file" id="import-file" accept="application/json" style="display:none;">
+        </label>
+      </div>
+    </div>
+    <div style="overflow-x:auto; margin-top:14px;">
+      <table id="log-table">
+        <thead>
+          <tr><th>Date</th><th>Category</th><th>Vendor</th><th>Method</th><th>Notes</th><th style="text-align:right;">Amount</th><th></th></tr>
+        </thead>
+        <tbody id="log-body"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state" style="display:none;">No expenses logged yet. Add your first one above.</div>
+    </div>
+  </div>
+
+</main>
+
+<footer>Chozen Solutions &middot; Business Financial OS &middot; Data stored locally in this browser. Export regularly.</footer>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'chozen_business_expenses_v1';
+  let entries = [];
+  let editingId = null;
+  let range = 'month';
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      entries = raw ? JSON.parse(raw) : [];
+    } catch (e) {
+      entries = [];
+    }
+  }
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  }
+  function uid() {
+    return 'e_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  }
+  function fmtMoney(n) {
+    return '$' + (Math.round(n * 100) / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function isThisMonth(dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const now = new Date();
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  }
+
+  const form = document.getElementById('entry-form');
+  const submitBtn = document.getElementById('submit-btn');
+  const cancelEditBtn = document.getElementById('cancel-edit-btn');
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    const date = document.getElementById('f-date').value;
+    const category = document.getElementById('f-category').value;
+    const payee = document.getElementById('f-payee').value.trim();
+    const amount = parseFloat(document.getElementById('f-amount').value);
+    const method = document.getElementById('f-method').value;
+    const notes = document.getElementById('f-notes').value.trim();
+
+    if (!date || !category || isNaN(amount)) return;
+
+    if (editingId) {
+      const idx = entries.findIndex(x => x.id === editingId);
+      if (idx > -1) {
+        entries[idx] = { ...entries[idx], date, category, payee, amount, method, notes };
+      }
+      editingId = null;
+      submitBtn.textContent = 'Add Expense';
+      cancelEditBtn.style.display = 'none';
+    } else {
+      entries.push({ id: uid(), date, category, payee, amount, method, notes });
+    }
+    save();
+    form.reset();
+    document.getElementById('f-date').value = date;
+    render();
+  });
+
+  cancelEditBtn.addEventListener('click', function () {
+    editingId = null;
+    submitBtn.textContent = 'Add Expense';
+    cancelEditBtn.style.display = 'none';
+    form.reset();
+  });
+
+  document.querySelectorAll('.filter-tabs button').forEach(btn => {
+    btn.addEventListener('click', function () {
+      document.querySelectorAll('.filter-tabs button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      range = this.dataset.range;
+      render();
+    });
+  });
+
+  document.getElementById('export-csv').addEventListener('click', function () {
+    const rows = [['Date', 'Category', 'Vendor', 'Method', 'Notes', 'Amount']];
+    entries.slice().sort((a, b) => a.date.localeCompare(b.date)).forEach(en => {
+      rows.push([en.date, en.category, en.payee || '', en.method || '', (en.notes || '').replace(/"/g, "'"), en.amount.toFixed(2)]);
+    });
+    const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    downloadBlob(csv, 'text/csv', `chozen-business-expenses-${new Date().toISOString().slice(0,10)}.csv`);
+  });
+
+  document.getElementById('export-json').addEventListener('click', function () {
+    downloadBlob(JSON.stringify(entries, null, 2), 'application/json', `chozen-business-expenses-backup-${new Date().toISOString().slice(0,10)}.json`);
+  });
+
+  document.getElementById('import-file').addEventListener('change', function (e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function (evt) {
+      try {
+        const imported = JSON.parse(evt.target.result);
+        if (!Array.isArray(imported)) throw new Error('Invalid file format');
+        const existingIds = new Set(entries.map(x => x.id));
+        let added = 0;
+        imported.forEach(item => {
+          if (item && item.date && item.category && typeof item.amount === 'number') {
+            if (!item.id || existingIds.has(item.id)) item.id = uid();
+            entries.push(item);
+            added++;
+          }
+        });
+        save();
+        render();
+        alert(`Imported ${added} expense${added === 1 ? '' : 's'}.`);
+      } catch (err) {
+        alert('Could not read that file. Make sure it is a JSON backup exported from this tracker.');
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  function downloadBlob(content, type, filename) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  window.editEntry = function (id) {
+    const en = entries.find(x => x.id === id);
+    if (!en) return;
+    document.getElementById('f-date').value = en.date;
+    document.getElementById('f-category').value = en.category;
+    document.getElementById('f-payee').value = en.payee || '';
+    document.getElementById('f-amount').value = en.amount;
+    document.getElementById('f-method').value = en.method || 'Card';
+    document.getElementById('f-notes').value = en.notes || '';
+    editingId = id;
+    submitBtn.textContent = 'Save Changes';
+    cancelEditBtn.style.display = 'inline-block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  window.deleteEntry = function (id) {
+    if (!confirm('Delete this expense? This cannot be undone.')) return;
+    entries = entries.filter(x => x.id !== id);
+    save();
+    render();
+  };
+
+  function render() {
+    const filtered = range === 'month' ? entries.filter(e => isThisMonth(e.date)) : entries.slice();
+    const sorted = filtered.slice().sort((a, b) => b.date.localeCompare(a.date));
+
+    const tbody = document.getElementById('log-body');
+    const emptyState = document.getElementById('empty-state');
+    tbody.innerHTML = '';
+    if (sorted.length === 0) {
+      emptyState.style.display = 'block';
+    } else {
+      emptyState.style.display = 'none';
+      sorted.forEach(en => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td data-label="Date">${en.date}</td>
+          <td data-label="Category">${en.category}</td>
+          <td data-label="Vendor">${en.payee || '&mdash;'}</td>
+          <td data-label="Method">${en.method || '&mdash;'}</td>
+          <td data-label="Notes">${en.notes || ''}</td>
+          <td data-label="Amount" class="amount-cell">${fmtMoney(en.amount)}</td>
+          <td><button class="btn-edit" onclick="editEntry('${en.id}')">Edit</button><button class="btn-danger" onclick="deleteEntry('${en.id}')">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    const total = filtered.reduce((s, e) => s + e.amount, 0);
+    document.getElementById('stat-total').textContent = fmtMoney(total);
+    document.getElementById('stat-count').textContent = filtered.length;
+    document.getElementById('stat-avg').textContent = fmtMoney(filtered.length ? total / filtered.length : 0);
+
+    const byCat = {};
+    filtered.forEach(e => { byCat[e.category] = (byCat[e.category] || 0) + e.amount; });
+    const catEntries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+    document.getElementById('stat-top').textContent = catEntries.length ? catEntries[0][0] : '\u2014';
+
+    const catBars = document.getElementById('cat-bars');
+    catBars.innerHTML = '';
+    const maxVal = catEntries.length ? catEntries[0][1] : 0;
+    catEntries.forEach(([cat, val]) => {
+      const row = document.createElement('div');
+      row.className = 'cat-row';
+      const pct = maxVal ? Math.max(4, (val / maxVal) * 100) : 0;
+      row.innerHTML = `
+        <div>${cat}</div>
+        <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${pct}%;"></div></div>
+        <div style="text-align:right; font-weight:700;">${fmtMoney(val)}</div>
+      `;
+      catBars.appendChild(row);
+    });
+  }
+
+  document.getElementById('f-date').value = new Date().toISOString().slice(0, 10);
+  load();
+  render();
+})();
+</script>
+
+</body>
+</html>
