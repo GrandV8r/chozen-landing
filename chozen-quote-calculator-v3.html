@@ -21,7 +21,7 @@ header{background:var(--panel);border-bottom:1px solid var(--border);padding:22p
 .step-title{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--silver)}
 
 /* Segmented method control */
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.seg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden}
 .seg button{background:var(--panel2);border:none;color:var(--silver);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:13px 8px;cursor:pointer;transition:background .15s,color .15s}
 .seg button.active{background:var(--blue);color:var(--white)}
 .seg button:not(.active):hover{background:#242424}
@@ -128,6 +128,7 @@ footer a{color:var(--blue-lt);text-decoration:none}
   <div class="seg">
     <button id="segDTF" class="active" onclick="setMethod('dtf')">DTF Transfer</button>
     <button id="segSP" onclick="setMethod('sp')">Screen Printing</button>
+    <button id="segEMB" onclick="setMethod('emb')">Embroidery</button>
   </div>
 
   <!-- DTF OPTIONS -->
@@ -211,6 +212,40 @@ footer a{color:var(--blue-lt);text-decoration:none}
         <label class="toggle"><input type="checkbox" id="spArt" onchange="calculate()"><span class="knob"></span></label>
       </div>
       <div class="opt-note">Screen printing runs on a 24-piece minimum. Player names and numbers available, quoted at order. Best value for bold designs with few ink colors at volume.</div>
+    </div>
+  </div>
+
+  <!-- EMBROIDERY OPTIONS -->
+  <div id="embOptions" style="display:none">
+    <div class="step-label"><div class="step-num">2</div><div class="step-title">Embroidery Setup</div></div>
+    <div class="opt-panel">
+      <div class="opt-row">
+        <span class="opt-lbl"><strong>Stitch Count</strong></span>
+        <div class="opt-ctl select-wrap">
+          <select id="embStitch" onchange="calculate()">
+            <option value="low">Under 7,000 stitches</option>
+            <option value="high">7,000&#8211;10,000 stitches</option>
+            <option value="over">Over 10,000 stitches</option>
+          </select>
+        </div>
+      </div>
+      <div class="opt-row">
+        <span class="opt-lbl">Second location embroidery <span style="color:var(--tan)">(+$5.00)</span></span>
+        <label class="toggle"><input type="checkbox" id="embSecondLoc" onchange="calculate()"><span class="knob"></span></label>
+      </div>
+      <div class="opt-row">
+        <span class="opt-lbl">Bubble foam (3D puff patch) <span style="color:var(--tan)">(+$4.00)</span></span>
+        <label class="toggle"><input type="checkbox" id="embBubbleFoam" onchange="calculate()"><span class="knob"></span></label>
+      </div>
+      <div class="opt-row">
+        <span class="opt-lbl">Personalization, names/numbers <span style="color:var(--tan)">(+$16.00)</span></span>
+        <label class="toggle"><input type="checkbox" id="embPersonalize" onchange="calculate()"><span class="knob"></span></label>
+      </div>
+      <div class="opt-row">
+        <span class="opt-lbl">New logo digitizing <span style="color:var(--tan)">(one-time $27)</span></span>
+        <label class="toggle"><input type="checkbox" id="embDigitize" onchange="calculate()"><span class="knob"></span></label>
+      </div>
+      <div class="opt-note">No order minimum. Designs over 10,000 stitches or with unusually high thread color counts are quoted directly, book a Blueprint Session for exact pricing.</div>
     </div>
   </div>
 
@@ -340,6 +375,42 @@ function spUnitPrice(blank, qty, colorsF, colorsB, sleeve){
   return roundPrice(cost * SP_MULT[tier]);
 }
 
+// EMBROIDERY ENGINE (new)
+// Vendor: Udderly Custom, effective 7/1/2026. No order minimum confirmed.
+const EMB_TIERS = ["1-12","13-24","25-60","61-120","121-249","250-499","500-749"];
+const EMB_RATES = {
+  "1-12":    [4.40, 5.50],
+  "13-24":   [4.00, 4.90],
+  "25-60":   [3.70, 4.45],
+  "61-120":  [3.30, 4.20],
+  "121-249": [3.25, 3.95],
+  "250-499": [3.10, 3.75],
+  "500-749": [2.80, 3.40]
+};
+const EMB_SECOND_LOC = 2.75;
+const EMB_BUBBLE_FOAM = 1.75;
+const EMB_PERSONALIZE = 9.00;
+const EMB_DIGITIZE = 15.00;
+const EMB_MULT = 1.75;
+function getEmbTier(n){
+  if (n>=750) return "750+";
+  if (n>=500) return "500-749";
+  if (n>=250) return "250-499";
+  if (n>=121) return "121-249";
+  if (n>=61)  return "61-120";
+  if (n>=25)  return "25-60";
+  if (n>=13)  return "13-24";
+  return "1-12";
+}
+function embUnitPrice(blank, tier, stitch, secondLoc, bubbleFoam, personalize){
+  const idx = stitch === "high" ? 1 : 0;
+  const rate = EMB_RATES[tier][idx];
+  const addons = (secondLoc?EMB_SECOND_LOC:0) + (bubbleFoam?EMB_BUBBLE_FOAM:0) + (personalize?EMB_PERSONALIZE:0);
+  const cost = blank + rate + addons + PACKAGING;
+  return roundPrice(cost * EMB_MULT);
+}
+const EMB_DIGITIZE_RETAIL = roundPrice(EMB_DIGITIZE * EMB_MULT);
+
 // CATALOG
 const CATALOG = [
   { cat:"Short Sleeve Tees", items:[
@@ -382,8 +453,10 @@ function setMethod(m){
   METHOD = m;
   document.getElementById("segDTF").classList.toggle("active", m==="dtf");
   document.getElementById("segSP").classList.toggle("active", m==="sp");
+  document.getElementById("segEMB").classList.toggle("active", m==="emb");
   document.getElementById("dtfOptions").style.display = m==="dtf" ? "block" : "none";
   document.getElementById("spOptions").style.display  = m==="sp"  ? "block" : "none";
+  document.getElementById("embOptions").style.display = m==="emb" ? "block" : "none";
   calculate();
 }
 
@@ -492,6 +565,12 @@ function calculate(){
   const spSleeve = document.getElementById("spSleeve").checked;
   const spArt = document.getElementById("spArt").checked;
 
+  const embStitch = document.getElementById("embStitch").value;
+  const embSecondLoc = document.getElementById("embSecondLoc").checked;
+  const embBubbleFoam = document.getElementById("embBubbleFoam").checked;
+  const embPersonalize = document.getElementById("embPersonalize").checked;
+  const embDigitize = document.getElementById("embDigitize").checked;
+
   let tierLabel, decoLabel, priceFn, spBlocked = null;
 
   if (METHOD === "dtf"){
@@ -500,7 +579,7 @@ function calculate(){
     tierLabel = tl[tier];
     decoLabel = "DTF \u00b7 " + pkgLabels[pkg] + styleLabels[style];
     priceFn = (blank) => dtfUnitPrice(blank, tier, pkg, style);
-  } else {
+  } else if (METHOD === "sp") {
     const tier = getSpTier(totalPcs);
     const tl = {"24-47":"24\u201347 pcs","48-71":"48\u201371 pcs","72-143":"72\u2013143 pcs","144-239":"144\u2013239 pcs","240-359":"240\u2013359 pcs","360-499":"360\u2013499 pcs","500-1199":"500\u20131,199 pcs"};
     tierLabel = totalPcs < SP_MIN ? "Below minimum" : tl[tier];
@@ -512,6 +591,18 @@ function calculate(){
         : `${Math.max(colorsF,colorsB)}-color printing starts at <strong>${minNeeded} pieces</strong>. Add more pieces or reduce ink colors.`;
     }
     priceFn = (blank) => spUnitPrice(blank, totalPcs, colorsF, colorsB, spSleeve);
+  } else if (METHOD === "emb") {
+    const tier = getEmbTier(totalPcs);
+    const tl = {"1-12":"1\u201312 pcs","13-24":"13\u201324 pcs","25-60":"25\u201360 pcs","61-120":"61\u2013120 pcs","121-249":"121\u2013249 pcs","250-499":"250\u2013499 pcs","500-749":"500\u2013749 pcs","750+":"750+ pcs"};
+    tierLabel = tl[tier];
+    const stitchLabel = embStitch==="high" ? "7K\u201310K stitches" : embStitch==="over" ? "10K+ stitches" : "Under 7K stitches";
+    decoLabel = "Embroidery \u00b7 " + stitchLabel;
+    if (totalPcs > 0 && (tier === "750+" || embStitch === "over")){
+      spBlocked = tier === "750+"
+        ? `Embroidery orders of <strong>750+ pieces</strong> are quoted directly. Book a Blueprint Session for exact pricing.`
+        : `Designs over <strong>10,000 stitches</strong> are quoted directly. Book a Blueprint Session for exact pricing.`;
+    }
+    priceFn = (blank) => embUnitPrice(blank, tier, embStitch, embSecondLoc, embBubbleFoam, embPersonalize);
   }
 
   CATALOG.forEach((cat, ci) => {
@@ -544,8 +635,10 @@ function calculate(){
   document.getElementById("decoLabel").textContent = decoLabel;
 
   const setupLine = document.getElementById("setupLine");
-  const showSetup = METHOD==="sp" && spArt && totalPcs > 0 && !spBlocked;
+  const setupFee = METHOD==="sp" ? (spArt ? SP_ART_RETAIL : 0) : METHOD==="emb" ? (embDigitize ? EMB_DIGITIZE_RETAIL : 0) : 0;
+  const showSetup = setupFee > 0 && totalPcs > 0 && !spBlocked;
   setupLine.style.display = showSetup ? "flex" : "none";
+  if (showSetup) document.getElementById("setupVal").textContent = fmt(setupFee);
 
   const tbody = document.getElementById("lineBody");
   tbody.innerHTML = "";
@@ -561,7 +654,7 @@ function calculate(){
     tbody.appendChild(tr);
   });
 
-  if (showSetup) grand += SP_ART_RETAIL;
+  if (showSetup) grand += setupFee;
   document.getElementById("orderTotal").textContent = (totalPcs>0 && valid) ? fmt(grand) : (totalPcs>0 ? "\u2013" : "$0.00");
 
   const warn = document.getElementById("spWarn");
@@ -575,12 +668,19 @@ function calculate(){
     else if (totalPcs < 50){ tip.innerHTML=`\ud83d\udca1 Add <strong>${50-totalPcs} more piece${50-totalPcs>1?"s":""}</strong> to unlock 50\u201399 pricing.`; tip.classList.add("visible"); }
     else if (totalPcs < 100){ tip.innerHTML=`\ud83d\udca1 Add <strong>${100-totalPcs} more piece${100-totalPcs>1?"s":""}</strong> to unlock 100+ pricing, and ask about <strong>Door 2</strong>.`; tip.classList.add("visible"); }
     else { tip.innerHTML=`\u2705 You're at maximum volume pricing. <strong>Ask about Door 2</strong>, a managed merchandise partnership built for brands at your scale.`; tip.classList.add("visible"); }
-  } else {
+  } else if (METHOD === "sp") {
     if (spBlocked){ tip.classList.remove("visible"); }
     else {
       const next = [48,72,144,240,360,500].find(t => totalPcs < t);
       if (next){ tip.innerHTML=`\ud83d\udca1 Add <strong>${next-totalPcs} more piece${next-totalPcs>1?"s":""}</strong> to unlock the next screen print tier.`; tip.classList.add("visible"); }
       else { tip.innerHTML=`\u2705 You're in top-tier screen print pricing. <strong>Ask about Door 2</strong>, a managed program built for volume like this.`; tip.classList.add("visible"); }
+    }
+  } else if (METHOD === "emb") {
+    if (spBlocked){ tip.classList.remove("visible"); }
+    else {
+      const next = [13,25,61,121,250,500,750].find(t => totalPcs < t);
+      if (next){ tip.innerHTML=`\ud83d\udca1 Add <strong>${next-totalPcs} more piece${next-totalPcs>1?"s":""}</strong> to unlock the next embroidery tier.`; tip.classList.add("visible"); }
+      else { tip.innerHTML=`\u2705 You're in top-tier embroidery pricing. <strong>Ask about Door 2</strong>, a managed program built for volume like this.`; tip.classList.add("visible"); }
     }
   }
 }
