@@ -16,7 +16,7 @@ header{background:var(--panel);border-bottom:1px solid var(--border);padding:22p
 .container{max-width:600px;margin:0 auto;padding:0 14px}
 
 /* Method tabs */
-.method-tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:20px}
+.method-tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:20px}
 .method-tab{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:10px 4px;text-align:center;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--silver);cursor:pointer;transition:all .15s;user-select:none}
 .method-tab.active{background:var(--blue);border-color:var(--blue);color:var(--white)}
 .method-tab:hover:not(.active){background:#242424}
@@ -126,6 +126,7 @@ footer a{color:var(--blue-lt);text-decoration:none}
     <div class="method-tab" data-m="screen" onclick="setMethod('screen')">Screen Print</div>
     <div class="method-tab" data-m="vinyl" onclick="setMethod('vinyl')">Vinyl</div>
     <div class="method-tab" data-m="sub" onclick="setMethod('sub')">Sublimation</div>
+    <div class="method-tab" data-m="emb" onclick="setMethod('emb')">Embroidery</div>
   </div>
 
   <!-- STEP 2: OPTIONS -->
@@ -216,6 +217,43 @@ footer a{color:var(--blue-lt);text-decoration:none}
     <div class="method-note"><strong>Apparel pricing above applies to polyester-rich garments.</strong> Sublimation mugs are priced separately below, by the mug, not by garment size.</div>
   </div>
 
+  <!-- Embroidery options -->
+  <div id="opts_emb" style="display:none">
+    <div class="select-wrap">
+      <select id="embStitch" onchange="calculate()">
+        <option value="low">Under 7,000 Stitches</option>
+        <option value="high">7,000-10,000 Stitches</option>
+        <option value="over">Over 10,000 Stitches</option>
+      </select>
+    </div>
+    <div class="select-wrap">
+      <select id="embLocations" onchange="calculate()">
+        <option value="1">One Location</option>
+        <option value="2">Two Locations (+$5.00)</option>
+      </select>
+    </div>
+    <div class="select-wrap">
+      <select id="embBubbleFoam" onchange="calculate()">
+        <option value="0">No Bubble Foam</option>
+        <option value="1">Bubble Foam / 3D Puff Patch (+$4.00)</option>
+      </select>
+    </div>
+    <div class="select-wrap">
+      <select id="embPersonalize" onchange="calculate()">
+        <option value="0">No Personalization</option>
+        <option value="1">Names / Numbers (+$16.00)</option>
+      </select>
+    </div>
+    <div class="select-wrap">
+      <select id="embDigitize" onchange="calculate()">
+        <option value="0">Using Existing Digitized Logo</option>
+        <option value="1">New Logo, Needs Digitizing (one-time $27)</option>
+      </select>
+    </div>
+    <div class="method-note"><strong>No order minimum.</strong> Designs over 10,000 stitches or with unusually high thread color counts are quoted directly.</div>
+    <div class="warn-note" id="embWarn"></div>
+  </div>
+
   <!-- STEP 3: ITEMS -->
   <div class="step-label"><div class="step-num">3</div><div class="step-title">Add Items to Your Order</div></div>
   <div id="catalogAccordion"></div>
@@ -244,6 +282,7 @@ footer a{color:var(--blue-lt);text-decoration:none}
         <thead><tr><th>Item</th><th>Size</th><th>Qty &times; Price</th><th>Total</th></tr></thead>
         <tbody id="lineBody"></tbody>
       </table>
+      <div class="summary-line" id="digitizeLine" style="display:none"><span class="lbl">One-time digitizing</span><span class="val" id="digitizeAmt"></span></div>
       <div class="summary-line" id="adjLine" style="display:none"><span class="lbl adj-line">Adjustment</span><span class="val adj-line" id="adjAmt"></span></div>
       <div class="summary-line total-line" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--blue)">
         <span class="lbl">Order Total</span><span class="val" id="orderTotal">$0.00</span>
@@ -262,7 +301,7 @@ footer a{color:var(--blue-lt);text-decoration:none}
 <footer>
   Prices shown per unit and include decoration, materials &amp; production.<br>
   Shipping quoted separately. Larger sizes reflect actual blank cost differences.<br>
-  Embroidery, UV DTF decals, and business cards quoted in your Blueprint Session.<br><br>
+  UV DTF decals and business cards quoted in your Blueprint Session.<br><br>
   <a href="https://chozensolutions.carrd.co">chozensolutions.carrd.co</a> &nbsp;&middot;&nbsp; Macon, GA
 </footer>
 
@@ -318,6 +357,22 @@ const VINYL_LABOR_FULL = 12.00;
 const VINYL_FRACTION = { quarter:0.25, half:0.5, full:1 };
 const SUB = { half:{paper:0.17, ink:0.30, labor:4.50}, full:{paper:0.34, ink:0.60, labor:9.00} };
 const GARMENT_MARKUP_SOFT = 1.5; // blank markup for vinyl/sub garments
+
+// Embroidery (Udderly Custom, effective 7/1/2026, confirmed no order minimum)
+const EMB_COST = {
+  "1-12":    [4.40, 5.50],
+  "13-24":   [4.00, 4.90],
+  "25-60":   [3.70, 4.45],
+  "61-120":  [3.30, 4.20],
+  "121-249": [3.25, 3.95],
+  "250-499": [3.10, 3.75],
+  "500-749": [2.80, 3.40]
+};
+const EMB_SECOND_LOC = 2.75;
+const EMB_BUBBLE_FOAM_COST = 1.75;
+const EMB_PERSONALIZE_COST = 9.00;
+const EMB_DIGITIZE_COST = 15.00;
+const EMB_MULT = 1.75;
 
 // == CATALOG ====================================================
 const CATALOG = [
@@ -408,6 +463,24 @@ function subUnit(blank, size){
   const deco = decoCost * (1 + SOFT_MARKUP);
   return roundHalf(blank * GARMENT_MARKUP_SOFT + deco + PACKAGING);
 }
+function getEmbTier(n){
+  if(n>=750) return "750+";
+  if(n>=500) return "500-749";
+  if(n>=250) return "250-499";
+  if(n>=121) return "121-249";
+  if(n>=61)  return "61-120";
+  if(n>=25)  return "25-60";
+  if(n>=13)  return "13-24";
+  return "1-12";
+}
+function embUnit(blank, tier, stitch, locations, bubbleFoam, personalize){
+  const idx = stitch==="high" ? 1 : 0;
+  const rate = EMB_COST[tier][idx];
+  const addons = (locations>=2?EMB_SECOND_LOC:0) + (bubbleFoam?EMB_BUBBLE_FOAM_COST:0) + (personalize?EMB_PERSONALIZE_COST:0);
+  const cost = blank + rate + addons + PACKAGING;
+  return roundHalf(cost * EMB_MULT);
+}
+const EMB_DIGITIZE_RETAIL = roundHalf(EMB_DIGITIZE_COST * EMB_MULT);
 
 // == UI BUILD ===================================================
 function buildAccordion(){
@@ -526,9 +599,10 @@ function setMethod(m){
   document.getElementById("opts_screen").style.display = m==="screen" ? "" : "none";
   document.getElementById("opts_vinyl").style.display = m==="vinyl" ? "" : "none";
   document.getElementById("opts_sub").style.display = m==="sub" ? "" : "none";
+  document.getElementById("opts_emb").style.display = m==="emb" ? "" : "none";
   const mugBlock = document.getElementById("mugCatBlock");
   if(mugBlock) mugBlock.style.display = m==="sub" ? "" : "none";
-  const titles = {dtf:"Choose Decoration Package", screen:"Choose Colors & Locations", vinyl:"Choose Vinyl Type & Design Size", sub:"Choose Print Size"};
+  const titles = {dtf:"Choose Decoration Package", screen:"Choose Colors & Locations", vinyl:"Choose Vinyl Type & Design Size", sub:"Choose Print Size", emb:"Choose Embroidery Options"};
   document.getElementById("step2Title").textContent = titles[m];
   calculate();
 }
@@ -545,7 +619,7 @@ function clearAdj(){ document.getElementById("adjValue").value = 0; calculate();
 
 // == CALCULATE ==================================================
 function calculate(){
-  const methodLabels = {dtf:"DTF", screen:"Screen Print", vinyl:"Vinyl (HTV)", sub:"Sublimation"};
+  const methodLabels = {dtf:"DTF", screen:"Screen Print", vinyl:"Vinyl (HTV)", sub:"Sublimation", emb:"Embroidery"};
   document.getElementById("methodLabel").textContent = methodLabels[METHOD];
 
   let totalPcs = 0;
@@ -564,7 +638,7 @@ function calculate(){
   });
 
   // Per-method setup
-  let decoLabel = "", tierLabel = "\u2014", unitFn = null, spWarnMsg = "";
+  let decoLabel = "", tierLabel = "\u2014", unitFn = null, spWarnMsg = "", embWarnMsg = "";
   if(METHOD==="dtf"){
     const pkg = document.getElementById("dtfPkg").value;
     const effect = document.getElementById("dtfEffect").value;
@@ -612,10 +686,30 @@ function calculate(){
     decoLabel = size==="full" ? "Large Print (11x17)" : "Standard Print (8.5x11)";
     tierLabel = totalPcs+" pcs";
     unitFn = (blank) => subUnit(blank, size);
+  } else if(METHOD==="emb"){
+    const stitch = document.getElementById("embStitch").value;
+    const locations = parseInt(document.getElementById("embLocations").value);
+    const bubbleFoam = document.getElementById("embBubbleFoam").value === "1";
+    const personalize = document.getElementById("embPersonalize").value === "1";
+    const stitchLabels = {low:"Under 7K Stitches", high:"7K-10K Stitches", over:"Over 10K Stitches"};
+    decoLabel = stitchLabels[stitch] + (locations>=2 ? " \u00b7 2 Locations" : "");
+    const tier = getEmbTier(totalPcs);
+    const tl = {"1-12":"1\u201312 pcs","13-24":"13\u201324 pcs","25-60":"25\u201360 pcs","61-120":"61\u2013120 pcs","121-249":"121\u2013249 pcs","250-499":"250\u2013499 pcs","500-749":"500\u2013749 pcs","750+":"750+ pcs"};
+    tierLabel = tl[tier];
+    if(totalPcs > 0 && (tier==="750+" || stitch==="over")){
+      embWarnMsg = tier==="750+"
+        ? `Embroidery orders of <strong>750+ pieces</strong> are quoted directly. Book a Blueprint Session for exact pricing.`
+        : `Designs over <strong>10,000 stitches</strong> are quoted directly. Book a Blueprint Session for exact pricing.`;
+      unitFn = () => null;
+    } else {
+      unitFn = (blank) => embUnit(blank, tier, stitch, locations, bubbleFoam, personalize);
+    }
   }
 
   const spWarn = document.getElementById("spWarn");
   if(spWarn){ spWarn.innerHTML = spWarnMsg; spWarn.classList.toggle("visible", !!spWarnMsg); }
+  const embWarn = document.getElementById("embWarn");
+  if(embWarn){ embWarn.innerHTML = embWarnMsg; embWarn.classList.toggle("visible", !!embWarnMsg); }
 
   // Mug quantities (sublimation only, priced independently of apparel tiers)
   let mugQty = 0;
@@ -690,6 +784,16 @@ function calculate(){
       tr.innerHTML = `<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prodName}</td><td>${sz}</td><td>${qty} \u00d7 ${fmt(unitPrice)}</td><td>${fmt(line)}</td>`;
       tbody.appendChild(tr);
     });
+  }
+
+  // One-time digitizing fee (embroidery only)
+  const embDigitizeChecked = METHOD==="emb" && document.getElementById("embDigitize").value==="1";
+  const showDigitize = embDigitizeChecked && totalPcs > 0 && !embWarnMsg;
+  const digitizeLine = document.getElementById("digitizeLine");
+  digitizeLine.style.display = showDigitize ? "flex" : "none";
+  if(showDigitize){
+    document.getElementById("digitizeAmt").textContent = fmt(EMB_DIGITIZE_RETAIL);
+    grand += EMB_DIGITIZE_RETAIL;
   }
 
   // Owner adjustment
