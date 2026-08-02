@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chozen Solutions — Internal Cost Calculator v3</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--dark:#0A0A0A;--panel:#141414;--panel2:#1E1E1E;--blue:#4767A6;--blue-lt:#6A8BC4;--brown:#935A16;--tan:#EEE08B;--silver:#939DB7;--white:#FFFFFF;--input-bg:#252525;--border:#2E2E2E;--red:#c0392b}
+body{background:var(--dark);color:var(--white);font-family:'Inter',sans-serif;font-size:14px;min-height:100vh;padding-bottom:80px}
+header{background:var(--panel);border-bottom:2px solid var(--red);padding:22px 20px 18px;text-align:center}
+.logo-word{font-family:'Cinzel',serif;font-size:clamp(17px,4vw,24px);letter-spacing:.12em}
+.logo-word span{color:var(--blue-lt)}
+.warn-banner{background:var(--red);color:var(--white);font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:8px;text-align:center}
+.tagline{font-size:11px;color:var(--silver);letter-spacing:.16em;text-transform:uppercase;margin-top:5px}
+.container{max-width:640px;margin:0 auto;padding:0 14px}
+.step-label{display:flex;align-items:center;gap:10px;margin:24px 0 10px}
+.step-num{background:var(--red);color:var(--white);font-family:'Cinzel',serif;font-size:11px;font-weight:700;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.step-title{font-size:11px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--silver)}
+.select-wrap{position:relative;width:100%;margin-bottom:8px}
+.select-wrap::after{content:'\25be';position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--blue-lt);pointer-events:none}
+select,input[type=number]{width:100%;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;color:var(--white);font-family:'Inter',sans-serif;font-size:14px;padding:12px 14px;appearance:none}
+select{padding-right:40px}
+select:focus,input:focus{outline:none;border-color:var(--red)}
+.opt-panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:8px}
+.opt-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0}
+.opt-row+.opt-row{border-top:1px solid var(--border)}
+.opt-lbl{font-size:12px;color:var(--silver)}
+.opt-ctl{min-width:140px}
+.note{font-size:11px;color:var(--silver);margin-top:8px;line-height:1.5}
+.note.warn{color:var(--tan)}
+.cat-block{margin-bottom:8px;border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.cat-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel2);cursor:pointer;user-select:none}
+.cat-header.has-items{border-left:3px solid var(--red)}
+.cat-name{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--silver)}
+.cat-header.has-items .cat-name{color:var(--white)}
+.cat-chevron{color:var(--silver);font-size:12px;transition:transform .2s}
+.cat-chevron.open{transform:rotate(180deg)}
+.cat-body{display:none;padding:10px}
+.cat-body.open{display:block}
+.prod-block{margin-bottom:8px;background:var(--panel);border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.prod-block.has-items{border-color:var(--red)}
+.prod-header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+.prod-name{font-size:12px;font-weight:600}
+.prod-style{font-size:10px;color:var(--silver);margin-top:2px}
+.prod-subtotal{font-size:12px;font-weight:700;color:var(--red)}
+.prod-sizes{display:none;padding:0 12px 10px}
+.prod-sizes.open{display:block}
+.size-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.size-row{background:var(--panel2);border:1px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:space-between;padding:8px 10px}
+.size-row.active{border-color:var(--red)}
+.size-label{font-size:12px;font-weight:600;min-width:38px}
+.qty-controls{display:flex;align-items:center;gap:5px}
+.qty-btn{background:var(--dark);border:1px solid var(--border);color:var(--white);width:24px;height:24px;border-radius:4px;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.qty-btn:hover{background:var(--red);border-color:var(--red)}
+.qty-input{background:transparent;border:none;color:var(--white);font-size:13px;font-weight:600;width:28px;text-align:center}
+.summary-card{background:var(--panel);border:2px solid var(--red);border-radius:10px;margin-top:24px;overflow:hidden}
+.summary-hdr{background:var(--red);padding:11px 16px;font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.summary-body{padding:14px}
+.summary-line{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.summary-line:last-child{border-bottom:none}
+.summary-line .lbl{color:var(--silver)}
+.summary-line .val{font-weight:600}
+.summary-line.total-line .lbl{color:var(--white);font-size:14px;font-weight:600}
+.summary-line.total-line .val{color:var(--red);font-size:22px;font-weight:700}
+.line-items{width:100%;margin-top:10px}
+.line-items th{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);text-align:left;padding:3px 0 7px}
+.line-items th:last-child{text-align:right}
+.line-items td{font-size:12px;padding:4px 0;border-top:1px solid var(--border)}
+.line-items td:last-child{text-align:right;color:var(--red);font-weight:600}
+.margin-box{background:rgba(192,57,43,.12);border:1px solid rgba(192,57,43,.4);border-radius:8px;padding:12px 14px;margin-top:12px}
+.margin-box .row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
+.margin-box .row.hi{font-size:15px;font-weight:700;color:var(--tan)}
+.clear-btn{background:none;border:1px solid var(--border);color:var(--silver);font-size:11px;padding:6px 14px;border-radius:5px;cursor:pointer;margin-top:10px}
+.clear-btn:hover{border-color:var(--red);color:var(--red)}
+.assump{background:rgba(147,90,22,.15);border:1px solid rgba(147,90,22,.4);border-radius:8px;padding:12px 14px;margin-top:14px;font-size:11px;color:var(--tan);line-height:1.6}
+footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;color:var(--silver);line-height:1.7}
+@media(max-width:380px){.size-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo-word">CHOZEN <span>SOLUTIONS</span></div>
+  <div class="tagline">Internal Cost Worksheet v3 · No Markup · 1:1 Catalog Mirror</div>
+</header>
+<div class="warn-banner">INTERNAL ONLY — RAW SUPPLIER COSTS — NEVER SHARE WITH CUSTOMERS OR PARTNERS</div>
+
+<div class="container">
+
+  <div class="step-label"><div class="step-num">1</div><div class="step-title">Decoration Method</div></div>
+  <div class="select-wrap">
+    <select id="method" onchange="onMethodChange()">
+      <option value="dtf">DTF Transfer</option>
+      <option value="dtfspec">DTF Specialty Finish</option>
+      <option value="screen">Screen Print</option>
+      <option value="vinyl">Vinyl / HTV</option>
+      <option value="sub">Sublimation (Apparel)</option>
+      <option value="mug">Sublimation (Mugs)</option>
+      <option value="emb">Embroidery</option>
+    </select>
+  </div>
+
+  <div id="dtfOpts" class="opt-panel">
+    <div class="opt-row">
+      <span class="opt-lbl"># of 22"x12" gang sheets needed</span>
+      <div class="opt-ctl"><input type="number" id="dtfSheets" min="0" value="1" oninput="calculate()"></div>
+    </div>
+    <div class="note">Corrected supplier cost: <strong>$5.00 per 22"x12" sheet</strong> (Udderly B2B, confirmed 7/30/2026). Customer price for the same sheet is $7.00. <strong>Known limitation:</strong> the live customer calculator (quote-calculator.html) actually prices DTF per-image (front/back/sleeve flat rates), not per-sheet — that formula's raw cost components (labor, overhead) aren't confirmed vendor numbers, so this tool uses the one real cost figure you gave me instead. Not a perfect mirror of the customer engine's math, but it is the true material cost.</div>
+  </div>
+
+  <div id="dtfSpecOpts" class="opt-panel" style="display:none">
+    <div class="opt-row">
+      <span class="opt-lbl">Finish size</span>
+      <div class="opt-ctl select-wrap" style="margin:0">
+        <select id="dtfSpecSize" onchange="calculate()">
+          <option value="chest">Chest Hit (4"x4")</option>
+          <option value="standard">Standard (11"x11")</option>
+          <option value="full">Full Size (14"x12")</option>
+        </select>
+      </div>
+    </div>
+    <div class="opt-row">
+      <span class="opt-lbl">Puff print instead (flat rate)</span>
+      <div class="opt-ctl"><input type="checkbox" id="dtfSpecPuff" onchange="calculate()"></div>
+    </div>
+    <div class="note warn">⚠ Back-calculated: retail price ÷ your 1.75x markup. Same rate applies regardless of named finish (glitter, gold foil, glow, reflective, iridescent, pearl, thermochromic all price identically by size in the customer engine). Estimate only — confirm against a real Jiffy invoice before trusting for a big order.</div>
+  </div>
+
+  <div id="screenOpts" class="opt-panel" style="display:none">
+    <div class="opt-row">
+      <span class="opt-lbl">Ink colors</span>
+      <div class="opt-ctl select-wrap" style="margin:0">
+        <select id="spColors" onchange="calculate()">
+          <option value="1">1 Color</option><option value="2">2 Colors</option><option value="3">3 Colors</option>
+          <option value="4">4 Colors</option><option value="5">5 Colors</option><option value="6">6 Colors</option>
+        </select>
+      </div>
+    </div>
+    <div class="opt-row">
+      <span class="opt-lbl">Print locations</span>
+      <div class="opt-ctl select-wrap" style="margin:0">
+        <select id="spLocations" onchange="calculate()">
+          <option value="1">One Location</option>
+          <option value="2">Two Locations</option>
+        </select>
+      </div>
+    </div>
+    <div class="opt-row">
+      <span class="opt-lbl">Total piece quantity</span>
+      <div class="opt-ctl"><input type="number" id="spQty" min="1" value="24" oninput="calculate()"></div>
+    </div>
+    <div class="note warn">Macon Tees rate sheet is 14+ months old — reconfirm before trusting for large quotes. Screen charge ($15/color, one-time) applies per location — mirrors the customer engine's formula exactly.</div>
+  </div>
+
+  <div id="vinylOpts" class="opt-panel" style="display:none">
+    <div class="opt-row">
+      <span class="opt-lbl">Vinyl type</span>
+      <div class="opt-ctl select-wrap" style="margin:0">
+        <select id="vinylType" onchange="calculate()">
+          <option value="easy">Standard (EasyWeed)</option>
+          <option value="glitter">Glitter</option>
+        </select>
+      </div>
+    </div>
+    <div class="opt-row">
+      <span class="opt-lbl">Coverage</span>
+      <div class="opt-ctl select-wrap" style="margin:0">
+        <select id="vinylCoverage" onchange="calculate()">
+          <option value="quarter">Small (chest logo, name)</option>
+          <option value="half">Medium (half-sheet)</option>
+          <option value="full">Large (full-sheet)</option>
+        </select>
+      </div>
+    </div>
+    <div class="note">Material cost per full 11.8"x12" sheet: EasyWeed $6.00, Glitter $8.83. Labor shown separately below at $12.00/full sheet equivalent — your own press time, not a vendor charge.</div>
+  </div>
+
+  <div id="subOpts" class="opt-panel" style="display:none">
+    <div class="opt-row">
+      <span class="opt-lbl">Print size</span>
+      <div class="opt-ctl select-wrap" style="margin:0">
+        <select id="subSize" onchange="calculate()">
+          <option value="half">Standard (up to 8.5x11)</option>
+          <option value="full">Large (up to 11x17)</option>
+        </select>
+      </div>
+    </div>
+    <div class="note">Paper + ink raw cost, labor shown separately. Applies to polyester-rich apparel.</div>
+  </div>
+
+  <div id="mugOpts" class="opt-panel" style="display:none">
+    <div class="opt-row">
+      <span class="opt-lbl">Mug type</span>
+      <div class="opt-ctl select-wrap" style="margin:0">
+        <select id="mugType" onchange="calculate()">
+          <option value="economy">Economy Sublimation Mug</option>
+          <option value="innercolor">15oz Inner Color Mug</option>
+        </select>
+      </div>
+    </div>
+    <div class="opt-row">
+      <span class="opt-lbl">Total mug quantity</span>
+      <div class="opt-ctl"><input type="number" id="mugQty" min="1" value="1" oninput="calculate()"></div>
+    </div>
+    <div class="note warn">⚠ These are the customer calculator's JP Plus tier prices, used as-is. Its own code comment calls them "cost basis" with blank cost baked in, but there's no visible markup layer on top in that engine — meaning this may already BE close to a no-margin number, or JP Plus's true wholesale cost could be lower and margin is thinner than expected. Not confirmed against a raw JP Plus invoice. Flag this to get real numbers if mugs become a meaningful revenue line.</div>
+  </div>
+
+  <div id="embOpts" class="opt-panel" style="display:none">
+    <div class="opt-row">
+      <span class="opt-lbl">Stitch count</span>
+      <div class="opt-ctl select-wrap" style="margin:0">
+        <select id="embStitch" onchange="calculate()">
+          <option value="low">Under 7,000</option>
+          <option value="high">7,000–10,000</option>
+        </select>
+      </div>
+    </div>
+    <div class="opt-row">
+      <span class="opt-lbl">Total piece quantity</span>
+      <div class="opt-ctl"><input type="number" id="embQty" min="1" value="12" oninput="calculate()"></div>
+    </div>
+    <div class="note">Udderly Custom raw cost tiers, effective 7/1/2026. No order minimum. Cost BEFORE your 1.75x markup.</div>
+  </div>
+
+  <div class="step-label"><div class="step-num">2</div><div class="step-title">Blanks — Add Items</div></div>
+  <div id="catalogAccordion"></div>
+  <button class="clear-btn" onclick="clearAll()">Clear all quantities</button>
+
+  <div class="step-label"><div class="step-num">3</div><div class="step-title">Optional — Compare Against Customer Price</div></div>
+  <div class="opt-panel">
+    <div class="opt-row">
+      <span class="opt-lbl">What you're charging the customer (per unit, total order)</span>
+      <div class="opt-ctl"><input type="number" id="customerPrice" min="0" step="0.01" placeholder="$0.00" oninput="calculate()"></div>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-hdr">True Cost Summary</div>
+    <div class="summary-body">
+      <div class="summary-line"><span class="lbl">Total Pieces</span><span class="val" id="totalPcs">0</span></div>
+      <table class="line-items">
+        <thead><tr><th>Item</th><th>Size</th><th>Qty</th><th>Cost</th></tr></thead>
+        <tbody id="lineBody"></tbody>
+      </table>
+      <div class="summary-line"><span class="lbl">Decoration cost (material/vendor)</span><span class="val" id="decoCostTotal">$0.00</span></div>
+      <div class="summary-line" id="laborLine" style="display:none"><span class="lbl">Your labor (shown, not forced into total)</span><span class="val" id="laborCostTotal">$0.00</span></div>
+      <div class="summary-line total-line" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--red)">
+        <span class="lbl">True Total Cost</span><span class="val" id="orderTotalCost">$0.00</span>
+      </div>
+      <div class="margin-box" id="marginBox" style="display:none">
+        <div class="row"><span>Customer charges</span><span id="mCustPrice">$0.00</span></div>
+        <div class="row"><span>True cost</span><span id="mCost">$0.00</span></div>
+        <div class="row hi"><span>Gross margin</span><span id="mMargin">$0.00 (0%)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="assump">
+    <strong>v3 — confirmed 1:1 catalog match against quote-calculator.html:</strong> Removed 3 tote items (BG1500, BG424, BG427) that were mistakenly pulled from a different file — they don't exist in the real customer calculator, so they didn't belong here either. Added sublimation mugs (both SKUs). Fixed Screen Print to include the Locations option (front-only vs front+back), matching the customer engine's actual formula. Every blank item, size, and decoration option now matches the live customer tool exactly, except where flagged above (DTF per-sheet vs per-image structural difference; mug cost ambiguity).
+  </div>
+</div>
+
+<footer>
+  Internal tool. Never link, embed, or share this file publicly.<br>
+  Chozen Solutions — hosted unlisted, no crawlable link
+</footer>
+
+<script>
+// == RAW COST DATA (no markup applied anywhere in this file) ==================
+const PACKAGING = 0.45;
+
+// DTF — corrected B2B cost, confirmed via Udderly 7/30/2026 email
+const DTF_SHEET_COST = 5.00; // per 22"x12" gang sheet
+
+// DTF Specialty finishes — back-calculated from customer calculator's retail figures / 1.75 markup
+const DTF_SPEC_RAW = { chest: 2.80/1.75, standard: 21.175/1.75, full: 29.40/1.75 };
+const DTF_PUFF_RAW = 13.00/1.75;
+
+// Screen print — Macon Tees vendor cost per print location (qty tier x colors). Mirrors customer engine exactly.
+const SP_COST = {
+  "24-47":  {1:1.90,2:2.30,3:2.70,4:null,5:null,6:null},
+  "48-71":  {1:1.55,2:1.90,3:2.00,4:null,5:null,6:null},
+  "72-143": {1:1.40,2:1.60,3:1.75,4:1.90,5:2.05,6:2.10},
+  "144-239":{1:1.30,2:1.55,3:1.60,4:1.80,5:1.95,6:2.00},
+  "240-359":{1:1.25,2:1.45,3:1.55,4:1.70,5:1.85,6:1.95},
+  "360-499":{1:1.10,2:1.25,3:1.35,4:1.50,5:1.65,6:1.80},
+  "500-1199":{1:1.05,2:1.20,3:1.30,4:1.40,5:1.60,6:1.75}
+};
+const SP_SCREEN_CHARGE = 15; // per color, one-time, real vendor cost
+
+// Vinyl / HTV — raw material cost per full 11.8x12 sheet
+const VINYL = { easy: 6.00, glitter: 8.83 };
+const VINYL_LABOR_FULL = 12.00;
+const VINYL_FRACTION = { quarter:0.25, half:0.5, full:1 };
+
+// Sublimation apparel — raw paper+ink+labor
+const SUB = { half:{paper:0.17, ink:0.30, labor:4.50}, full:{paper:0.34, ink:0.60, labor:9.00} };
+
+// Sublimation mugs — JP Plus tier price card from customer engine (unconfirmed as true raw cost, see warning)
+const MUG_PRICE = {
+  economy:    { "1-11":18.00, "12-49":16.00, "50-99":14.50, "100+":13.00 },
+  innercolor: { "1-11":21.00, "12-49":19.00, "50-99":17.00, "100+":15.50 }
+};
+
+// Embroidery — Udderly Custom raw cost, effective 7/1/2026 (no order minimum)
+const EMB_COST = {
+  "1-12":[4.40,5.50], "13-24":[4.00,4.90], "25-60":[3.70,4.45], "61-120":[3.30,4.20],
+  "121-249":[3.25,3.95], "250-499":[3.10,3.75], "500-749":[2.80,3.40]
+};
+
+// == CATALOG — exact 1:1 match with quote-calculator.html (blank cost basis, already true cost) ==
+const CATALOG = [
+  { cat:"Short Sleeve Tees", items:[
+    { id:"64000", name:"Gildan Softstyle Tee", style:"64000", sizes:{"XS":3.58,"S":3.58,"M":3.58,"L":3.58,"XL":3.58,"2XL":5.33,"3XL":6.76,"4XL":6.76,"5XL":6.76} },
+    { id:"3600", name:"Next Level Cotton Tee", style:"3600", sizes:{"XS":4.20,"S":4.20,"M":4.20,"L":4.20,"XL":4.20,"2XL":5.83,"3XL":7.19,"4XL":8.53,"5XL":9.29,"6XL":9.72} },
+    { id:"42000", name:"Gildan Performance Tee", style:"42000", sizes:{"S":5.45,"M":5.45,"L":5.45,"XL":5.45,"2XL":7.14,"3XL":8.41} },
+    { id:"64200", name:"Gildan Softstyle Tank Top", style:"64200", sizes:{"S":4.13,"M":4.13,"L":4.13,"XL":4.13,"2XL":5.06} },
+    { id:"64200L", name:"Gildan Women's Softstyle Tank", style:"64200L", sizes:{"S":4.33,"M":4.33,"L":4.33,"XL":4.33,"2XL":5.31} },
+    { id:"190", name:"Tultex Women's Racerback Tank", style:"190", sizes:{"TXS":2.87,"TS":2.87,"TM":2.87,"TL":2.87,"TXL":2.87,"T2XL":4.93} },
+  ]},
+  { cat:"Long Sleeve Tees", items:[
+    { id:"64400", name:"Gildan Softstyle Long Sleeve", style:"64400", sizes:{"S":6.80,"M":6.80,"L":6.80,"XL":6.80,"2XL":8.46,"3XL":9.75} },
+    { id:"42400", name:"Gildan Performance Long Sleeve", style:"42400", sizes:{"S":8.40,"M":8.40,"L":8.40,"XL":8.40,"2XL":10.39,"3XL":12.12} },
+  ]},
+  { cat:"Hoodies & Crewnecks", items:[
+    { id:"18500", name:"Gildan Heavy Blend Hoodie", style:"18500", sizes:{"XS":13.14,"S":13.14,"M":13.14,"L":13.14,"XL":13.14,"2XL":16.20,"3XL":18.99,"4XL":18.99,"5XL":18.99} },
+    { id:"18000", name:"Gildan Heavy Blend Crewneck", style:"18000", sizes:{"XS":7.30,"S":7.30,"M":7.30,"L":7.30,"XL":7.30,"2XL":8.94,"3XL":9.90,"4XL":9.90,"5XL":9.90} },
+  ]},
+  { cat:"Youth", items:[
+    { id:"64000B", name:"Gildan Youth Softstyle Tee", style:"64000B", sizes:{"GXS":3.11,"GS":3.11,"GM":3.11,"GL":3.11,"GXL":3.11} },
+    { id:"18500B", name:"Gildan Youth Heavy Blend Hoodie", style:"18500B", sizes:{"GXS":12.68,"GS":12.68,"GM":12.68,"GL":12.68,"GXL":12.68} },
+  ]},
+  { cat:"Polos & Jackets", items:[
+    { id:"8800", name:"Gildan DryBlend Jersey Polo", style:"8800", sizes:{"S":7.55,"M":7.55,"L":7.55,"XL":7.55,"2XL":10.00,"3XL":11.51,"4XL":11.51,"5XL":11.51} },
+    { id:"88181", name:"CORE365 Performance Piqué Polo", style:"88181", sizes:{"XS":9.27,"S":9.27,"M":9.27,"L":9.27,"XL":9.27,"2XL":10.30,"3XL":12.36,"4XL":13.39,"5XL":14.42,"6XL":15.45} },
+    { id:"TT77", name:"Team 365 Packable Anorak Jacket", style:"TT77", sizes:{"XS":18.02,"S":18.02,"M":18.02,"L":18.02,"XL":18.02,"2XL":19.05,"3XL":20.08,"4XL":21.11} },
+  ]},
+  { cat:"Bags", items:[
+    { id:"8886", name:"Liberty Bags Value Drawstring", style:"8886", sizes:{"One Size":2.18} },
+    { id:"8881", name:"Liberty Bags Drawstring Pack", style:"8881", sizes:{"One Size":4.17} },
+  ]},
+];
+
+const MUG_CATALOG = [
+  { id:"mug_economy", name:"Economy Sublimation Mug", style:"XP8438", type:"economy", sizes:{"11oz":0,"15oz":0} },
+  { id:"mug_inner", name:"15oz Inner Color Mug", style:"XP8541", type:"innercolor", sizes:{"15oz":0} },
+];
+
+function fmt(n){ return "$"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
+function getSpTier(n){
+  if(n<24) return null;
+  if(n<=47) return "24-47"; if(n<=71) return "48-71"; if(n<=143) return "72-143";
+  if(n<=239) return "144-239"; if(n<=359) return "240-359"; if(n<=499) return "360-499";
+  return "500-1199";
+}
+function getEmbTier(n){
+  if(n>=500) return "500-749"; if(n>=250) return "250-499"; if(n>=121) return "121-249";
+  if(n>=61) return "61-120"; if(n>=25) return "25-60"; if(n>=13) return "13-24"; return "1-12";
+}
+function getMugTier(n){ return n>=100?"100+":n>=50?"50-99":n>=12?"12-49":"1-11"; }
+
+function onMethodChange(){
+  const m = document.getElementById("method").value;
+  document.getElementById("dtfOpts").style.display = m==="dtf" ? "" : "none";
+  document.getElementById("dtfSpecOpts").style.display = m==="dtfspec" ? "" : "none";
+  document.getElementById("screenOpts").style.display = m==="screen" ? "" : "none";
+  document.getElementById("vinylOpts").style.display = m==="vinyl" ? "" : "none";
+  document.getElementById("subOpts").style.display = m==="sub" ? "" : "none";
+  document.getElementById("mugOpts").style.display = m==="mug" ? "" : "none";
+  document.getElementById("embOpts").style.display = m==="emb" ? "" : "none";
+  document.getElementById("catalogAccordion").style.display = m==="mug" ? "none" : "";
+  calculate();
+}
+
+function buildAccordion(){
+  const acc = document.getElementById("catalogAccordion");
+  acc.innerHTML = "";
+  CATALOG.forEach((cat, ci) => {
+    const catDiv = document.createElement("div");
+    catDiv.className = "cat-block"; catDiv.id = "cat_"+ci;
+    const hdr = document.createElement("div");
+    hdr.className = "cat-header";
+    hdr.innerHTML = `<span class="cat-name">${cat.cat}</span><span class="cat-chevron" id="chevron_${ci}">\u25be</span>`;
+    hdr.onclick = () => toggleCat(ci);
+    const body = document.createElement("div");
+    body.className = "cat-body"; body.id = "catbody_"+ci;
+    cat.items.forEach((prod, pi) => {
+      const pb = document.createElement("div");
+      pb.className = "prod-block"; pb.id = `prod_${ci}_${pi}`;
+      const ph = document.createElement("div");
+      ph.className = "prod-header";
+      ph.innerHTML = `<div><div class="prod-name">${prod.name}</div><div class="prod-style">Style ${prod.style}</div></div><span class="prod-subtotal" id="sub_${ci}_${pi}"></span>`;
+      ph.onclick = () => toggleProd(ci, pi);
+      const ps = document.createElement("div");
+      ps.className = "prod-sizes"; ps.id = `sizes_${ci}_${pi}`;
+      const grid = document.createElement("div");
+      grid.className = "size-grid";
+      Object.entries(prod.sizes).forEach(([sz]) => {
+        const id = `qty_${ci}_${pi}_${sz.replace(/\s/g,"_")}`;
+        const sr = document.createElement("div");
+        sr.className = "size-row"; sr.id = `row_${id}`;
+        sr.innerHTML = `<span class="size-label">${sz}</span><div class="qty-controls"><button class="qty-btn" onclick="adj('${id}',-1,event)">\u2212</button><input class="qty-input" id="${id}" type="number" min="0" value="0" oninput="calculate()"><button class="qty-btn" onclick="adj('${id}',1,event)">+</button></div>`;
+        grid.appendChild(sr);
+      });
+      ps.appendChild(grid); pb.appendChild(ph); pb.appendChild(ps); body.appendChild(pb);
+    });
+    catDiv.appendChild(hdr); catDiv.appendChild(body); acc.appendChild(catDiv);
+  });
+  toggleCat(0);
+}
+function toggleCat(ci){
+  const body = document.getElementById("catbody_"+ci);
+  const chev = document.getElementById("chevron_"+ci);
+  const isOpen = body.classList.contains("open");
+  body.classList.toggle("open", !isOpen);
+  chev.classList.toggle("open", !isOpen);
+}
+function toggleProd(ci, pi){ document.getElementById(`sizes_${ci}_${pi}`).classList.toggle("open"); }
+function adj(id, d, e){
+  e && e.stopPropagation();
+  const inp = document.getElementById(id);
+  if(!inp) return;
+  inp.value = Math.max(0, (parseInt(inp.value)||0)+d);
+  calculate();
+}
+function clearAll(){
+  document.querySelectorAll(".qty-input").forEach(inp => inp.value=0);
+  document.getElementById("customerPrice").value = "";
+  calculate();
+}
+
+function calculate(){
+  const method = document.getElementById("method").value;
+
+  if(method === "mug"){
+    const type = document.getElementById("mugType").value;
+    const qty = parseInt(document.getElementById("mugQty").value)||0;
+    const tier = getMugTier(qty);
+    const unitCost = MUG_PRICE[type][tier];
+    const total = unitCost * qty;
+    document.getElementById("totalPcs").textContent = qty;
+    document.getElementById("decoCostTotal").textContent = fmt(0);
+    document.getElementById("laborLine").style.display = "none";
+    document.getElementById("orderTotalCost").textContent = fmt(total);
+    const tbody = document.getElementById("lineBody");
+    tbody.innerHTML = `<tr><td>${type==="economy"?"Economy Sublimation Mug":"15oz Inner Color Mug"}</td><td>—</td><td>${qty}</td><td>${fmt(total)}</td></tr>`;
+    const custPrice = parseFloat(document.getElementById("customerPrice").value)||0;
+    const marginBox = document.getElementById("marginBox");
+    if(custPrice > 0){
+      marginBox.style.display = "block";
+      const margin = custPrice - total;
+      const marginPct = custPrice > 0 ? (margin/custPrice*100) : 0;
+      document.getElementById("mCustPrice").textContent = fmt(custPrice);
+      document.getElementById("mCost").textContent = fmt(total);
+      document.getElementById("mMargin").textContent = fmt(margin) + " (" + marginPct.toFixed(1) + "%)";
+    } else { marginBox.style.display = "none"; }
+    return;
+  }
+
+  let totalPcs = 0;
+  const entries = [];
+  CATALOG.forEach((cat, ci) => {
+    cat.items.forEach((prod, pi) => {
+      Object.entries(prod.sizes).forEach(([sz, blank]) => {
+        const id = `qty_${ci}_${pi}_${sz.replace(/\s/g,"_")}`;
+        const inp = document.getElementById(id);
+        if(!inp) return;
+        const qty = parseInt(inp.value)||0;
+        if(qty>0){ totalPcs += qty; entries.push({prodName:prod.name, sz, blank, qty}); }
+        document.getElementById("row_"+id).classList.toggle("active", qty>0);
+      });
+    });
+  });
+
+  let decoTotal = 0, laborTotal = 0;
+  if(method === "dtf"){
+    const sheets = parseFloat(document.getElementById("dtfSheets").value)||0;
+    decoTotal = sheets * DTF_SHEET_COST;
+  } else if(method === "dtfspec"){
+    const isPuff = document.getElementById("dtfSpecPuff").checked;
+    const size = document.getElementById("dtfSpecSize").value;
+    const perUnit = isPuff ? DTF_PUFF_RAW : DTF_SPEC_RAW[size];
+    decoTotal = perUnit * totalPcs;
+  } else if(method === "screen"){
+    const colors = parseInt(document.getElementById("spColors").value);
+    const locations = parseInt(document.getElementById("spLocations").value);
+    const qty = parseInt(document.getElementById("spQty").value)||0;
+    const tier = getSpTier(qty);
+    if(tier){
+      const perLoc = SP_COST[tier][colors];
+      if(perLoc !== null){
+        decoTotal = (perLoc * locations * qty) + (SP_SCREEN_CHARGE * colors * locations);
+      }
+    }
+  } else if(method === "vinyl"){
+    const type = document.getElementById("vinylType").value;
+    const cov = document.getElementById("vinylCoverage").value;
+    const frac = VINYL_FRACTION[cov];
+    decoTotal = VINYL[type] * frac * totalPcs;
+    laborTotal = VINYL_LABOR_FULL * frac * totalPcs;
+  } else if(method === "sub"){
+    const size = document.getElementById("subSize").value;
+    const c = SUB[size];
+    decoTotal = (c.paper + c.ink) * totalPcs;
+    laborTotal = c.labor * totalPcs;
+  } else if(method === "emb"){
+    const stitch = document.getElementById("embStitch").value;
+    const qty = parseInt(document.getElementById("embQty").value)||0;
+    const tier = getEmbTier(qty);
+    const idx = stitch==="high" ? 1 : 0;
+    decoTotal = EMB_COST[tier][idx] * qty;
+  }
+
+  const tbody = document.getElementById("lineBody");
+  tbody.innerHTML = "";
+  let blanksTotal = 0;
+  entries.forEach(({prodName, sz, blank, qty}) => {
+    const lineCost = (blank + PACKAGING) * qty;
+    blanksTotal += lineCost;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prodName}</td><td>${sz}</td><td>${qty}</td><td>${fmt(lineCost)}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  CATALOG.forEach((cat, ci) => {
+    cat.items.forEach((prod, pi) => {
+      let prodTotal = 0, prodPcs = 0;
+      Object.entries(prod.sizes).forEach(([sz, blank]) => {
+        const id = `qty_${ci}_${pi}_${sz.replace(/\s/g,"_")}`;
+        const qty = parseInt(document.getElementById(id)?.value)||0;
+        if(qty>0){ prodTotal += (blank+PACKAGING)*qty; prodPcs += qty; }
+      });
+      const subEl = document.getElementById(`sub_${ci}_${pi}`);
+      if(subEl) subEl.textContent = prodPcs>0 ? fmt(prodTotal) : "";
+      document.getElementById(`prod_${ci}_${pi}`)?.classList.toggle("has-items", prodPcs>0);
+    });
+  });
+
+  document.getElementById("totalPcs").textContent = totalPcs;
+  document.getElementById("decoCostTotal").textContent = fmt(decoTotal);
+  const laborLine = document.getElementById("laborLine");
+  if(laborTotal > 0){
+    laborLine.style.display = "flex";
+    document.getElementById("laborCostTotal").textContent = fmt(laborTotal);
+  } else { laborLine.style.display = "none"; }
+
+  const grandTotal = blanksTotal + decoTotal;
+  document.getElementById("orderTotalCost").textContent = fmt(grandTotal);
+
+  const custPrice = parseFloat(document.getElementById("customerPrice").value)||0;
+  const marginBox = document.getElementById("marginBox");
+  if(custPrice > 0){
+    marginBox.style.display = "block";
+    const margin = custPrice - grandTotal;
+    const marginPct = custPrice > 0 ? (margin/custPrice*100) : 0;
+    document.getElementById("mCustPrice").textContent = fmt(custPrice);
+    document.getElementById("mCost").textContent = fmt(grandTotal);
+    document.getElementById("mMargin").textContent = fmt(margin) + " (" + marginPct.toFixed(1) + "%)";
+  } else {
+    marginBox.style.display = "none";
+  }
+}
+
+buildAccordion();
+onMethodChange();
+</script>
+</body>
+</html>
