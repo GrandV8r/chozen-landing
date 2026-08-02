@@ -51,6 +51,11 @@
   .discount-row select { max-width: 70px; flex: none; }
   .discount-row input { flex: 1; }
 
+  .live-summary { background: #f8f9ff; border: 1.5px solid #4767A6; border-radius: 8px; padding: 14px 16px; margin-top: 16px; }
+  .live-summary-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; padding: 4px 0; color: #444; }
+  .live-summary-row.discount { color: #e74c3c; }
+  .live-summary-row.total { border-top: 1.5px solid #4767A6; margin-top: 6px; padding-top: 10px; font-size: 18px; font-weight: bold; color: #4767A6; }
+
   /* INVOICE OUTPUT */
   #invoice-output { display: none; background: white; border-radius: 12px; max-width: 780px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3); overflow: hidden; }
 
@@ -197,6 +202,12 @@
       <label>Discount Reason <span style="font-weight:normal;color:#999;">(shows on invoice)</span></label>
       <input type="text" id="disc-reason" placeholder="e.g. Repeat customer, referral, bulk order">
     </div>
+  </div>
+
+  <div class="live-summary" id="live-summary">
+    <div class="live-summary-row"><span>Subtotal</span><span id="live-subtotal">$0.00</span></div>
+    <div class="live-summary-row discount" id="live-disc-row" style="display:none;"><span id="live-disc-label">Discount</span><span id="live-discount">−$0.00</span></div>
+    <div class="live-summary-row total"><span>Total</span><span id="live-total">$0.00</span></div>
   </div>
 
   <div class="section-divider"></div>
@@ -368,6 +379,7 @@
           const q = li.querySelector('.qty'), p = li.querySelector('.price'), t = li.querySelector('.total');
           t.value = ((parseFloat(q.value)||0) * (parseFloat(p.value)||0)).toFixed(2);
         });
+        if (typeof updateLiveSummary === 'function') updateLiveSummary();
       }
     } catch(e) {
       console.error('Could not import quote data:', e);
@@ -396,6 +408,7 @@
       const q = parseFloat(qty.value) || 0;
       const p = parseFloat(price.value) || 0;
       total.value = (q * p).toFixed(2);
+      updateLiveSummary();
     }
     qty.addEventListener('input', calc);
     price.addEventListener('input', calc);
@@ -409,8 +422,36 @@
     document.querySelectorAll('.line-item .total').forEach(t => {
       subtotal += parseFloat(t.value) || 0;
     });
+    updateLiveSummary();
     return subtotal;
   }
+
+  function updateLiveSummary() {
+    let subtotal = 0;
+    document.querySelectorAll('.line-item .total').forEach(t => {
+      subtotal += parseFloat(t.value) || 0;
+    });
+    const discType = document.getElementById('disc-type').value;
+    const discValRaw = parseFloat(document.getElementById('disc-value').value) || 0;
+    let discAmt = 0;
+    if (discValRaw > 0 && subtotal > 0) {
+      discAmt = discType === 'dollar' ? Math.min(discValRaw, subtotal) : subtotal * (Math.min(discValRaw, 100) / 100);
+    }
+    const total = Math.max(0, subtotal - discAmt);
+    document.getElementById('live-subtotal').textContent = fmt(subtotal);
+    document.getElementById('live-total').textContent = fmt(total);
+    const discRow = document.getElementById('live-disc-row');
+    if (discAmt > 0) {
+      discRow.style.display = 'flex';
+      document.getElementById('live-disc-label').textContent = discType === 'pct' ? `Discount (${discValRaw}%)` : 'Discount';
+      document.getElementById('live-discount').textContent = '−' + fmt(discAmt);
+    } else {
+      discRow.style.display = 'none';
+    }
+  }
+  document.getElementById('disc-type').addEventListener('change', updateLiveSummary);
+  document.getElementById('disc-value').addEventListener('input', updateLiveSummary);
+  updateLiveSummary();
 
   function fmt(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 
@@ -525,6 +566,7 @@
     document.getElementById('disc-type').value = 'dollar';
     document.getElementById('disc-value').value = '0';
     document.getElementById('disc-reason').value = '';
+    updateLiveSummary();
 
     document.getElementById('inv-turnaround').value = '';
     document.getElementById('inv-fulfillment').value = 'Local Pickup — Macon, GA';
