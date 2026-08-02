@@ -105,6 +105,8 @@ select:focus{outline:none;border-color:var(--blue)}
 .cta-note{font-size:11px;color:var(--silver);margin-top:8px}
 .clear-btn{background:none;border:1px solid var(--border);color:var(--silver);font-family:'Inter',sans-serif;font-size:11px;padding:6px 14px;border-radius:5px;cursor:pointer;margin-top:10px;transition:border-color .15s,color .15s}
 .clear-btn:hover{border-color:var(--brown);color:var(--tan)}
+.invoice-btn{display:block;width:100%;max-width:340px;margin:10px auto 0;background:none;border:1.5px solid var(--blue);color:var(--blue-lt);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:11px 20px;border-radius:6px;cursor:pointer;transition:all .2s}
+.invoice-btn:hover{background:var(--blue);color:var(--white)}
 
 footer{text-align:center;margin-top:44px;padding:0 20px;font-size:11px;color:var(--silver);line-height:1.7}
 footer a{color:var(--blue-lt);text-decoration:none}
@@ -295,6 +297,7 @@ footer a{color:var(--blue-lt);text-decoration:none}
   <div class="cta-block">
     <a href="https://calendly.com/davis-chozensolutions/30min" target="_blank" class="cta-btn">Book a Blueprint Session</a>
     <div class="cta-note">No pitch. Just strategy. Let's talk about your order.</div>
+    <button class="invoice-btn" onclick="sendToInvoice()">Send to Invoice</button>
   </div>
 </div>
 
@@ -410,6 +413,7 @@ const CATALOG = [
 // == STATE ======================================================
 let METHOD = "dtf";
 let ADJ_MODE = "dollar";
+let LAST_LINE_ITEMS = [];
 
 // == HELPERS ====================================================
 function fmt(n){ return "$"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
@@ -617,6 +621,18 @@ function setAdjMode(m){
 }
 function clearAdj(){ document.getElementById("adjValue").value = 0; calculate(); }
 
+// == SEND TO INVOICE =============================================
+function sendToInvoice(){
+  if(LAST_LINE_ITEMS.length === 0){
+    alert("Add at least one item to your order before sending to invoice.");
+    return;
+  }
+  const payload = { door: "Door 1 \u2014 Custom Production", items: LAST_LINE_ITEMS };
+  const json = JSON.stringify(payload);
+  const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
+  window.open("Chozen_Solutions_Invoice_Generator.html?data=" + encoded, "_blank");
+}
+
 // == CALCULATE ==================================================
 function calculate(){
   const methodLabels = {dtf:"DTF", screen:"Screen Print", vinyl:"Vinyl (HTV)", sub:"Sublimation", emb:"Embroidery"};
@@ -769,6 +785,7 @@ function calculate(){
   const tbody = document.getElementById("lineBody");
   tbody.innerHTML = "";
   let grand = 0, allPriced = true;
+  LAST_LINE_ITEMS = [];
   entries.forEach(({prodName, sz, blank, qty}) => {
     const up = unitFn ? unitFn(blank) : null;
     if(up===null){ allPriced = false; return; }
@@ -776,6 +793,7 @@ function calculate(){
     const tr = document.createElement("tr");
     tr.innerHTML = `<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prodName}</td><td>${sz}</td><td>${qty} \u00d7 ${fmt(up)}</td><td>${fmt(line)}</td>`;
     tbody.appendChild(tr);
+    LAST_LINE_ITEMS.push({ desc: `${prodName} (${sz}) \u2014 ${decoLabel || methodLabels[METHOD]}`, qty, price: up });
   });
   if(METHOD==="sub"){
     mugEntries.forEach(({prodName, sz, qty, unitPrice}) => {
@@ -783,6 +801,7 @@ function calculate(){
       const tr = document.createElement("tr");
       tr.innerHTML = `<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prodName}</td><td>${sz}</td><td>${qty} \u00d7 ${fmt(unitPrice)}</td><td>${fmt(line)}</td>`;
       tbody.appendChild(tr);
+      LAST_LINE_ITEMS.push({ desc: `${prodName} (${sz}) \u2014 Sublimation Mug`, qty, price: unitPrice });
     });
   }
 
@@ -794,6 +813,7 @@ function calculate(){
   if(showDigitize){
     document.getElementById("digitizeAmt").textContent = fmt(EMB_DIGITIZE_RETAIL);
     grand += EMB_DIGITIZE_RETAIL;
+    LAST_LINE_ITEMS.push({ desc: "One-time digitizing fee", qty: 1, price: EMB_DIGITIZE_RETAIL });
   }
 
   // Owner adjustment
