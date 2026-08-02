@@ -229,17 +229,12 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
   <div id="catalogAccordion"></div>
   <button class="clear-btn" onclick="clearAll()">Clear all quantities</button>
 
-  <div class="step-label"><div class="step-num">3</div><div class="step-title">Your Labor — Enter If Applicable</div></div>
+  <div class="step-label"><div class="step-num">3</div><div class="step-title">Optional — Design Labor &amp; Customer Price</div></div>
   <div class="opt-panel">
     <div class="opt-row">
-      <span class="opt-lbl">Design / artwork labor (your rate, flat $ for this job)</span>
+      <span class="opt-lbl">Design labor / cost — time creating it, or price paid to buy it</span>
       <div class="opt-ctl"><input type="number" id="designLabor" min="0" step="0.01" placeholder="$0.00" oninput="calculate()"></div>
     </div>
-  </div>
-  <div class="note">Covers time spent creating/prepping artwork — separate from decoration press labor above. Shown as its own line, never forced into the total cost.</div>
-
-  <div class="step-label"><div class="step-num">4</div><div class="step-title">Optional — Compare Against Customer Price</div></div>
-  <div class="opt-panel">
     <div class="opt-row">
       <span class="opt-lbl">What you're charging the customer (per unit, total order)</span>
       <div class="opt-ctl"><input type="number" id="customerPrice" min="0" step="0.01" placeholder="$0.00" oninput="calculate()"></div>
@@ -256,7 +251,7 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
       </table>
       <div class="summary-line"><span class="lbl">Decoration cost (material/vendor)</span><span class="val" id="decoCostTotal">$0.00</span></div>
       <div class="summary-line" id="laborLine" style="display:none"><span class="lbl">Your labor — decoration (shown, not forced into total)</span><span class="val" id="laborCostTotal">$0.00</span></div>
-      <div class="summary-line" id="designLaborLine" style="display:none"><span class="lbl">Design/artwork labor (shown, not forced into total)</span><span class="val" id="designLaborTotal">$0.00</span></div>
+      <div class="summary-line" id="designLaborLine" style="display:none"><span class="lbl">Design labor/cost (shown, not forced into total)</span><span class="val" id="designLaborTotal">$0.00</span></div>
       <div class="summary-line total-line" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--red)">
         <span class="lbl">True Total Cost</span><span class="val" id="orderTotalCost">$0.00</span>
       </div>
@@ -271,7 +266,7 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
   <button class="invoice-btn" onclick="sendToInvoice()">Send to Invoice</button>
 
   <div class="assump">
-    <strong>v4 — added labor visibility:</strong> DTF Transfer and DTF Specialty Finish now show your press-time labor separately (same tier rates as the customer calculator's DTF_LABOR table — front-location rate applied per piece, since specialty effects and gang-sheet transfers are treated as one location). Added a Design/Artwork Labor field you can enter manually for any job — a flat dollar amount for your time, shown as its own line, never forced into the true cost total. Both labor lines now also flow into Send to Invoice as separate line items when non-zero, so you can bill for your time when it's appropriate (edit or delete the line in the invoice if it's a job where you're not charging labor).
+    <strong>v4 — added labor visibility:</strong> DTF Transfer and DTF Specialty Finish now show your press-time labor separately (same tier rates as the customer calculator's DTF_LABOR table — front-location rate applied per piece, since specialty effects and gang-sheet transfers are treated as one location). Added a Design Labor/Cost field you can enter manually for any job — covers either time spent creating artwork or a price paid to buy it, shown as its own line, never forced into the true cost total. Both labor lines now also flow into Send to Invoice as separate line items when non-zero, so you can bill for your time when it's appropriate (edit or delete the line in the invoice if it's a job where you're not charging labor).
   </div>
 </div>
 
@@ -484,7 +479,7 @@ function calculate(){
     if(designLaborVal > 0){
       designLaborLine.style.display = "flex";
       document.getElementById("designLaborTotal").textContent = fmt(designLaborVal);
-      LAST_LINE_ITEMS.push({ desc: "Design / artwork labor", qty: 1, price: designLaborVal });
+      LAST_LINE_ITEMS.push({ desc: "Design labor/cost", qty: 1, price: designLaborVal });
     } else { designLaborLine.style.display = "none"; }
     const custPrice = parseFloat(document.getElementById("customerPrice").value)||0;
     const marginBox = document.getElementById("marginBox");
@@ -604,7 +599,7 @@ function calculate(){
   if(designLaborVal > 0){
     designLaborLine.style.display = "flex";
     document.getElementById("designLaborTotal").textContent = fmt(designLaborVal);
-    LAST_LINE_ITEMS.push({ desc: "Design / artwork labor", qty: 1, price: designLaborVal });
+    LAST_LINE_ITEMS.push({ desc: "Design labor/cost", qty: 1, price: designLaborVal });
   } else { designLaborLine.style.display = "none"; }
 
   if(decoTotal > 0 && decoDesc){
