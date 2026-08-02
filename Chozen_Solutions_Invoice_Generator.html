@@ -316,6 +316,40 @@
   const invNum = 'CS-' + today.getFullYear() + '-' + String(Math.floor(Math.random() * 900) + 100);
   document.getElementById('inv-number').value = invNum;
 
+  // Intake from calculator "Send to Invoice" links
+  (function importFromQuote(){
+    const params = new URLSearchParams(window.location.search);
+    const data = params.get('data');
+    if (!data) return;
+    try {
+      const json = decodeURIComponent(escape(atob(decodeURIComponent(data))));
+      const payload = JSON.parse(json);
+      if (payload.door) document.getElementById('inv-door').value = payload.door;
+      if (payload.items && payload.items.length) {
+        const container = document.getElementById('line-items');
+        container.innerHTML = '';
+        payload.items.forEach(item => {
+          const li = document.createElement('div');
+          li.className = 'line-item';
+          const descVal = (item.desc || '').replace(/"/g, '&quot;');
+          li.innerHTML = `
+            <input type="text" class="desc" value="${descVal}" style="flex:3;min-width:160px;">
+            <input type="number" class="qty" min="1" value="${item.qty || 1}" style="max-width:80px;">
+            <input type="number" class="price" min="0" step="0.01" value="${item.price || 0}" style="max-width:110px;">
+            <input type="text" class="total" readonly style="max-width:110px;background:#f5f5f5;font-weight:bold;">
+            <button class="remove" onclick="this.parentElement.remove(); calcTotals();">✕</button>
+          `;
+          container.appendChild(li);
+          attachCalc(li);
+          const q = li.querySelector('.qty'), p = li.querySelector('.price'), t = li.querySelector('.total');
+          t.value = ((parseFloat(q.value)||0) * (parseFloat(p.value)||0)).toFixed(2);
+        });
+      }
+    } catch(e) {
+      console.error('Could not import quote data:', e);
+    }
+  })();
+
   function addLineItem() {
     const li = document.createElement('div');
     li.className = 'line-item';
