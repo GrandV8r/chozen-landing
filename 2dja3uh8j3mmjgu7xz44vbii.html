@@ -84,7 +84,7 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
 <body>
 <header>
   <div class="logo-word">CHOZEN <span>SOLUTIONS</span></div>
-  <div class="tagline">Internal Cost Worksheet v3 · No Markup · 1:1 Catalog Mirror</div>
+  <div class="tagline">Internal Cost Worksheet v4 · No Markup · 1:1 Catalog Mirror</div>
 </header>
 <div class="warn-banner">INTERNAL ONLY — RAW SUPPLIER COSTS — NEVER SHARE WITH CUSTOMERS OR PARTNERS</div>
 
@@ -108,7 +108,7 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
       <span class="opt-lbl"># of 22"x12" gang sheets needed</span>
       <div class="opt-ctl"><input type="number" id="dtfSheets" min="0" value="1" oninput="calculate()"></div>
     </div>
-    <div class="note">Corrected supplier cost: <strong>$5.00 per 22"x12" sheet</strong> (Udderly B2B, confirmed 7/30/2026). Customer price for the same sheet is $7.00. <strong>Known limitation:</strong> the live customer calculator (quote-calculator.html) actually prices DTF per-image (front/back/sleeve flat rates), not per-sheet — that formula's raw cost components (labor, overhead) aren't confirmed vendor numbers, so this tool uses the one real cost figure you gave me instead. Not a perfect mirror of the customer engine's math, but it is the true material cost.</div>
+    <div class="note">Corrected supplier cost: <strong>$5.00 per 22"x12" sheet</strong> (Udderly B2B, confirmed 7/30/2026). Customer price for the same sheet is $7.00. <strong>Known limitation:</strong> the live customer calculator (quote-calculator.html) actually prices DTF per-image (front/back/sleeve flat rates), not per-sheet — that formula's raw cost components (labor, overhead) aren't confirmed vendor numbers, so this tool uses the one real cost figure you gave me instead. Not a perfect mirror of the customer engine's math, but it is the true material cost. <strong>Labor:</strong> your press-time labor is now shown separately below, using the same tier rates as the customer engine.</div>
   </div>
 
   <div id="dtfSpecOpts" class="opt-panel" style="display:none">
@@ -229,7 +229,16 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
   <div id="catalogAccordion"></div>
   <button class="clear-btn" onclick="clearAll()">Clear all quantities</button>
 
-  <div class="step-label"><div class="step-num">3</div><div class="step-title">Optional — Compare Against Customer Price</div></div>
+  <div class="step-label"><div class="step-num">3</div><div class="step-title">Your Labor — Enter If Applicable</div></div>
+  <div class="opt-panel">
+    <div class="opt-row">
+      <span class="opt-lbl">Design / artwork labor (your rate, flat $ for this job)</span>
+      <div class="opt-ctl"><input type="number" id="designLabor" min="0" step="0.01" placeholder="$0.00" oninput="calculate()"></div>
+    </div>
+  </div>
+  <div class="note">Covers time spent creating/prepping artwork — separate from decoration press labor above. Shown as its own line, never forced into the total cost.</div>
+
+  <div class="step-label"><div class="step-num">4</div><div class="step-title">Optional — Compare Against Customer Price</div></div>
   <div class="opt-panel">
     <div class="opt-row">
       <span class="opt-lbl">What you're charging the customer (per unit, total order)</span>
@@ -246,7 +255,8 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
         <tbody id="lineBody"></tbody>
       </table>
       <div class="summary-line"><span class="lbl">Decoration cost (material/vendor)</span><span class="val" id="decoCostTotal">$0.00</span></div>
-      <div class="summary-line" id="laborLine" style="display:none"><span class="lbl">Your labor (shown, not forced into total)</span><span class="val" id="laborCostTotal">$0.00</span></div>
+      <div class="summary-line" id="laborLine" style="display:none"><span class="lbl">Your labor — decoration (shown, not forced into total)</span><span class="val" id="laborCostTotal">$0.00</span></div>
+      <div class="summary-line" id="designLaborLine" style="display:none"><span class="lbl">Design/artwork labor (shown, not forced into total)</span><span class="val" id="designLaborTotal">$0.00</span></div>
       <div class="summary-line total-line" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--red)">
         <span class="lbl">True Total Cost</span><span class="val" id="orderTotalCost">$0.00</span>
       </div>
@@ -261,7 +271,7 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
   <button class="invoice-btn" onclick="sendToInvoice()">Send to Invoice</button>
 
   <div class="assump">
-    <strong>v3 — confirmed 1:1 catalog match against quote-calculator.html:</strong> Removed 3 tote items (BG1500, BG424, BG427) that were mistakenly pulled from a different file — they don't exist in the real customer calculator, so they didn't belong here either. Added sublimation mugs (both SKUs). Fixed Screen Print to include the Locations option (front-only vs front+back), matching the customer engine's actual formula. Every blank item, size, and decoration option now matches the live customer tool exactly, except where flagged above (DTF per-sheet vs per-image structural difference; mug cost ambiguity).
+    <strong>v4 — added labor visibility:</strong> DTF Transfer and DTF Specialty Finish now show your press-time labor separately (same tier rates as the customer calculator's DTF_LABOR table — front-location rate applied per piece, since specialty effects and gang-sheet transfers are treated as one location). Added a Design/Artwork Labor field you can enter manually for any job — a flat dollar amount for your time, shown as its own line, never forced into the true cost total. Both labor lines now also flow into Send to Invoice as separate line items when non-zero, so you can bill for your time when it's appropriate (edit or delete the line in the invoice if it's a job where you're not charging labor).
   </div>
 </div>
 
@@ -276,6 +286,10 @@ const PACKAGING = 0.45;
 
 // DTF — corrected B2B cost, confirmed via Udderly 7/30/2026 email
 const DTF_SHEET_COST = 5.00; // per 22"x12" gang sheet
+
+// DTF labor tiers — your press time, same rates/tiers as the customer engine's DTF_LABOR table
+const DTF_LABOR = {"1-11":{f:12,b:8,s:4},"12-49":{f:10,b:6,s:2},"50-99":{f:8,b:4,s:2},"100+":{f:6,b:3,s:2}};
+function dtfTier(n){ return n>=100?"100+":n>=50?"50-99":n>=12?"12-49":"1-11"; }
 
 // DTF Specialty finishes — back-calculated from customer calculator's retail figures / 1.75 markup
 const DTF_SPEC_RAW = { chest: 2.80/1.75, standard: 21.175/1.75, full: 29.40/1.75 };
@@ -433,6 +447,7 @@ function adj(id, d, e){
 function clearAll(){
   document.querySelectorAll(".qty-input").forEach(inp => inp.value=0);
   document.getElementById("customerPrice").value = "";
+  document.getElementById("designLabor").value = "";
   calculate();
 }
 
@@ -449,6 +464,7 @@ function sendToInvoice(){
 
 function calculate(){
   const method = document.getElementById("method").value;
+  const designLaborVal = parseFloat(document.getElementById("designLabor").value)||0;
 
   if(method === "mug"){
     const type = document.getElementById("mugType").value;
@@ -464,6 +480,12 @@ function calculate(){
     const mugName = type==="economy"?"Economy Sublimation Mug":"15oz Inner Color Mug";
     tbody.innerHTML = `<tr><td>${mugName}</td><td>—</td><td>${qty}</td><td>${fmt(total)}</td></tr>`;
     LAST_LINE_ITEMS = qty > 0 ? [{ desc: mugName, qty, price: unitCost }] : [];
+    const designLaborLine = document.getElementById("designLaborLine");
+    if(designLaborVal > 0){
+      designLaborLine.style.display = "flex";
+      document.getElementById("designLaborTotal").textContent = fmt(designLaborVal);
+      LAST_LINE_ITEMS.push({ desc: "Design / artwork labor", qty: 1, price: designLaborVal });
+    } else { designLaborLine.style.display = "none"; }
     const custPrice = parseFloat(document.getElementById("customerPrice").value)||0;
     const marginBox = document.getElementById("marginBox");
     if(custPrice > 0){
@@ -498,12 +520,16 @@ function calculate(){
     const sheets = parseFloat(document.getElementById("dtfSheets").value)||0;
     decoTotal = sheets * DTF_SHEET_COST;
     decoDesc = `DTF Gang Sheets (${sheets} \u00d7 22"x12")`;
+    const tier = dtfTier(totalPcs);
+    laborTotal = DTF_LABOR[tier].f * totalPcs;
   } else if(method === "dtfspec"){
     const isPuff = document.getElementById("dtfSpecPuff").checked;
     const size = document.getElementById("dtfSpecSize").value;
     const perUnit = isPuff ? DTF_PUFF_RAW : DTF_SPEC_RAW[size];
     decoTotal = perUnit * totalPcs;
     decoDesc = isPuff ? "DTF Specialty \u2014 Puff Print" : `DTF Specialty \u2014 ${size}`;
+    const tier = dtfTier(totalPcs);
+    laborTotal = DTF_LABOR[tier].f * totalPcs;
   } else if(method === "screen"){
     const colors = parseInt(document.getElementById("spColors").value);
     const locations = parseInt(document.getElementById("spLocations").value);
@@ -571,7 +597,15 @@ function calculate(){
   if(laborTotal > 0){
     laborLine.style.display = "flex";
     document.getElementById("laborCostTotal").textContent = fmt(laborTotal);
+    LAST_LINE_ITEMS.push({ desc: `${methodLabels[method]} labor (your press time)`, qty: 1, price: laborTotal });
   } else { laborLine.style.display = "none"; }
+
+  const designLaborLine = document.getElementById("designLaborLine");
+  if(designLaborVal > 0){
+    designLaborLine.style.display = "flex";
+    document.getElementById("designLaborTotal").textContent = fmt(designLaborVal);
+    LAST_LINE_ITEMS.push({ desc: "Design / artwork labor", qty: 1, price: designLaborVal });
+  } else { designLaborLine.style.display = "none"; }
 
   if(decoTotal > 0 && decoDesc){
     LAST_LINE_ITEMS.push({ desc: decoDesc, qty: 1, price: decoTotal });
