@@ -47,6 +47,10 @@
 
   .section-divider { border-top: 1.5px solid #eee; margin: 18px 0; }
 
+  .discount-row { display: flex; gap: 8px; align-items: center; }
+  .discount-row select { max-width: 70px; flex: none; }
+  .discount-row input { flex: 1; }
+
   /* INVOICE OUTPUT */
   #invoice-output { display: none; background: white; border-radius: 12px; max-width: 780px; margin: 0 auto; box-shadow: 0 4px 20px rgba(0,0,0,0.3); overflow: hidden; }
 
@@ -74,6 +78,7 @@
   table.inv-table tbody td { padding: 10px 12px; font-size: 13px; border-bottom: 1px solid #eee; }
   table.inv-table tfoot td { padding: 10px 12px; font-size: 13px; }
   table.inv-table tfoot .subtotal-label { text-align: right; color: #666; }
+  table.inv-table tfoot .discount-row-out td { color: #e74c3c; }
   table.inv-table tfoot .total-row { font-weight: bold; font-size: 15px; color: #4767A6; }
   table.inv-table tfoot .total-row td { border-top: 2px solid #4767A6; padding-top: 12px; }
 
@@ -174,6 +179,25 @@
     </div>
   </div>
   <button class="btn btn-add" onclick="addLineItem()">+ Add Line Item</button>
+
+  <div class="section-divider"></div>
+  <h2>Discount <span style="font-weight:normal;text-transform:none;color:#999;font-size:12px;">(optional)</span></h2>
+  <div class="form-row">
+    <div class="form-group" style="max-width:260px;">
+      <label>Discount Amount</label>
+      <div class="discount-row">
+        <select id="disc-type">
+          <option value="dollar">$</option>
+          <option value="pct">%</option>
+        </select>
+        <input type="number" id="disc-value" min="0" step="0.01" placeholder="0" value="0">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Discount Reason <span style="font-weight:normal;color:#999;">(shows on invoice)</span></label>
+      <input type="text" id="disc-reason" placeholder="e.g. Repeat customer, referral, bulk order">
+    </div>
+  </div>
 
   <div class="section-divider"></div>
   <h2>Additional Details</h2>
@@ -430,15 +454,38 @@
       }
     });
 
+    // Discount
+    const discType = document.getElementById('disc-type').value;
+    const discValRaw = parseFloat(document.getElementById('disc-value').value) || 0;
+    const discReason = document.getElementById('disc-reason').value.trim();
+    let discAmt = 0;
+    if (discValRaw > 0 && subtotal > 0) {
+      discAmt = discType === 'dollar' ? Math.min(discValRaw, subtotal) : subtotal * (Math.min(discValRaw, 100) / 100);
+    }
+    const grandTotal = Math.max(0, subtotal - discAmt);
+
     // Totals
     const tfoot = document.getElementById('out-totals');
-    tfoot.innerHTML = `
+    let tfootHtml = `
+      <tr>
+        <td colspan="3" class="subtotal-label">Subtotal</td>
+        <td style="text-align:right;">${fmt(subtotal)}</td>
+      </tr>`;
+    if (discAmt > 0) {
+      const label = discReason ? `Discount — ${discReason}` : 'Discount';
+      tfootHtml += `
+      <tr class="discount-row-out">
+        <td colspan="3" style="text-align:right;">${label}${discType === 'pct' ? ' (' + discValRaw + '%)' : ''}</td>
+        <td style="text-align:right;">−${fmt(discAmt)}</td>
+      </tr>`;
+    }
+    tfootHtml += `
       <tr class="total-row">
         <td colspan="3" style="text-align:right;font-weight:bold;font-size:15px;border-top:2px solid #4767A6;padding-top:12px;">TOTAL DUE</td>
-        <td style="text-align:right;font-weight:bold;font-size:15px;color:#4767A6;border-top:2px solid #4767A6;padding-top:12px;">${fmt(subtotal)}</td>
-      </tr>
-    `;
-    document.getElementById('out-total-large').textContent = fmt(subtotal);
+        <td style="text-align:right;font-weight:bold;font-size:15px;color:#4767A6;border-top:2px solid #4767A6;padding-top:12px;">${fmt(grandTotal)}</td>
+      </tr>`;
+    tfoot.innerHTML = tfootHtml;
+    document.getElementById('out-total-large').textContent = fmt(grandTotal);
 
     // Notes
     const notes = document.getElementById('inv-notes').value.trim();
@@ -474,6 +521,10 @@
     const lineItemsContainer = document.getElementById('line-items');
     lineItemsContainer.innerHTML = '<div class="line-item"><input type="text" class="desc" placeholder="Description (e.g. Gildan 64000 Tee — DTF Front Print — Black/White)" style="flex:3;min-width:160px;"><input type="number" class="qty" placeholder="Qty" min="1" value="1" style="max-width:80px;"><input type="number" class="price" placeholder="Unit $" min="0" step="0.01" style="max-width:110px;"><input type="text" class="total" placeholder="Total" readonly style="max-width:110px;background:#f5f5f5;font-weight:bold;"></div>';
     attachCalc(lineItemsContainer.querySelector('.line-item'));
+
+    document.getElementById('disc-type').value = 'dollar';
+    document.getElementById('disc-value').value = '0';
+    document.getElementById('disc-reason').value = '';
 
     document.getElementById('inv-turnaround').value = '';
     document.getElementById('inv-fulfillment').value = 'Local Pickup — Macon, GA';
