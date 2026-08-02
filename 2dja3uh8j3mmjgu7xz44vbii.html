@@ -108,7 +108,15 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
       <span class="opt-lbl"># of 22"x12" gang sheets needed</span>
       <div class="opt-ctl"><input type="number" id="dtfSheets" min="0" value="1" oninput="calculate()"></div>
     </div>
-    <div class="note">Corrected supplier cost: <strong>$5.00 per 22"x12" sheet</strong> (Udderly B2B, confirmed 7/30/2026). Customer price for the same sheet is $7.00. <strong>Known limitation:</strong> the live customer calculator (quote-calculator.html) actually prices DTF per-image (front/back/sleeve flat rates), not per-sheet — that formula's raw cost components (labor, overhead) aren't confirmed vendor numbers, so this tool uses the one real cost figure you gave me instead. Not a perfect mirror of the customer engine's math, but it is the true material cost. <strong>Labor:</strong> your press-time labor is now shown separately below, using the same tier rates as the customer engine.</div>
+    <div class="opt-row">
+      <span class="opt-lbl">Hit locations (labor stacks per hit)</span>
+      <div class="opt-ctl" style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--silver)"><input type="checkbox" id="dtfLocFront" checked onchange="toggleDtfLoc('dtf','front')" style="width:auto">Front</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--silver)"><input type="checkbox" id="dtfLocBack" onchange="toggleDtfLoc('dtf','back')" style="width:auto">Back</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--silver)"><input type="checkbox" id="dtfLocSleeve" onchange="toggleDtfLoc('dtf','sleeve')" style="width:auto">Sleeve</label>
+      </div>
+    </div>
+    <div class="note">Corrected supplier cost: <strong>$5.00 per 22"x12" sheet</strong> (Udderly B2B, confirmed 7/30/2026). Customer price for the same sheet is $7.00. <strong>Known limitation:</strong> the live customer calculator (quote-calculator.html) actually prices DTF per-image (front/back/sleeve flat rates), not per-sheet — that formula's raw cost components (labor, overhead) aren't confirmed vendor numbers, so this tool uses the one real cost figure you gave me instead. Not a perfect mirror of the customer engine's math, but it is the true material cost. <strong>Labor:</strong> your press-time labor is now shown separately below, using the same tier rates as the customer engine, and now stacks per hit location you select above (Front on by default — tap Back and/or Sleeve to add more).</div>
   </div>
 
   <div id="dtfSpecOpts" class="opt-panel" style="display:none">
@@ -126,7 +134,15 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
       <span class="opt-lbl">Puff print instead (flat rate)</span>
       <div class="opt-ctl"><input type="checkbox" id="dtfSpecPuff" onchange="calculate()"></div>
     </div>
-    <div class="note warn">⚠ Back-calculated: retail price ÷ your 1.75x markup. Same rate applies regardless of named finish (glitter, gold foil, glow, reflective, iridescent, pearl, thermochromic all price identically by size in the customer engine). Estimate only — confirm against a real Jiffy invoice before trusting for a big order.</div>
+    <div class="opt-row">
+      <span class="opt-lbl">Hit locations (labor stacks per hit)</span>
+      <div class="opt-ctl" style="display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap">
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--silver)"><input type="checkbox" id="dtfSpecLocFront" checked onchange="toggleDtfLoc('dtfspec','front')" style="width:auto">Front</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--silver)"><input type="checkbox" id="dtfSpecLocBack" onchange="toggleDtfLoc('dtfspec','back')" style="width:auto">Back</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--silver)"><input type="checkbox" id="dtfSpecLocSleeve" onchange="toggleDtfLoc('dtfspec','sleeve')" style="width:auto">Sleeve</label>
+      </div>
+    </div>
+    <div class="note warn">⚠ Back-calculated: retail price ÷ your 1.75x markup. Same rate applies regardless of named finish (glitter, gold foil, glow, reflective, iridescent, pearl, thermochromic all price identically by size in the customer engine). Estimate only — confirm against a real Jiffy invoice before trusting for a big order. Labor now stacks per hit location selected above (Front on by default).</div>
   </div>
 
   <div id="screenOpts" class="opt-panel" style="display:none">
@@ -266,7 +282,7 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
   <button class="invoice-btn" onclick="sendToInvoice()">Send to Invoice</button>
 
   <div class="assump">
-    <strong>v4 — added labor visibility:</strong> DTF Transfer and DTF Specialty Finish now show your press-time labor separately (same tier rates as the customer calculator's DTF_LABOR table — front-location rate applied per piece, since specialty effects and gang-sheet transfers are treated as one location). Added a Design Labor/Cost field you can enter manually for any job — covers either time spent creating artwork or a price paid to buy it, shown as its own line, never forced into the true cost total. Both labor lines now also flow into Send to Invoice as separate line items when non-zero, so you can bill for your time when it's appropriate (edit or delete the line in the invoice if it's a job where you're not charging labor).
+    <strong>v4 — added labor visibility:</strong> DTF Transfer and DTF Specialty Finish now show your press-time labor separately (same tier rates as the customer calculator's DTF_LABOR table — front-location rate applied per piece, since specialty effects and gang-sheet transfers are treated as one location). Added a Design/Artwork Labor field you can enter manually for any job — a flat dollar amount for your time, shown as its own line, never forced into the true cost total. Both labor lines now also flow into Send to Invoice as separate line items when non-zero, so you can bill for your time when it's appropriate (edit or delete the line in the invoice if it's a job where you're not charging labor).
   </div>
 </div>
 
@@ -361,6 +377,21 @@ const MUG_CATALOG = [
 ];
 
 let LAST_LINE_ITEMS = [];
+const DTF_LOCS = { dtf: { front:true, back:false, sleeve:false }, dtfspec: { front:true, back:false, sleeve:false } };
+function toggleDtfLoc(method, loc){
+  const prefix = method === "dtf" ? "dtfLoc" : "dtfSpecLoc";
+  const capLoc = loc.charAt(0).toUpperCase() + loc.slice(1);
+  const cb = document.getElementById(prefix + capLoc);
+  const locs = DTF_LOCS[method];
+  const otherActive = Object.keys(locs).some(k => k !== loc && locs[k]);
+  if(!cb.checked && !otherActive){
+    cb.checked = true;
+    alert("At least one hit location must stay selected.");
+    return;
+  }
+  locs[loc] = cb.checked;
+  calculate();
+}
 
 function fmt(n){ return "$"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
 function getSpTier(n){
@@ -511,12 +542,19 @@ function calculate(){
 
   let decoTotal = 0, laborTotal = 0, decoDesc = "";
   const methodLabels = {dtf:"DTF Transfer", dtfspec:"DTF Specialty Finish", screen:"Screen Print", vinyl:"Vinyl/HTV", sub:"Sublimation", emb:"Embroidery"};
+  let dtfLocLabel = "";
   if(method === "dtf"){
     const sheets = parseFloat(document.getElementById("dtfSheets").value)||0;
     decoTotal = sheets * DTF_SHEET_COST;
     decoDesc = `DTF Gang Sheets (${sheets} \u00d7 22"x12")`;
     const tier = dtfTier(totalPcs);
-    laborTotal = DTF_LABOR[tier].f * totalPcs;
+    const locs = DTF_LOCS.dtf;
+    const rateKeyMap = { front:"f", back:"b", sleeve:"s" };
+    const labelMap = { front:"Front", back:"Back", sleeve:"Sleeve" };
+    let perPieceRate = 0; const activeLabels = [];
+    Object.keys(locs).forEach(loc => { if(locs[loc]){ perPieceRate += DTF_LABOR[tier][rateKeyMap[loc]]; activeLabels.push(labelMap[loc]); } });
+    dtfLocLabel = activeLabels.join(" + ");
+    laborTotal = perPieceRate * totalPcs;
   } else if(method === "dtfspec"){
     const isPuff = document.getElementById("dtfSpecPuff").checked;
     const size = document.getElementById("dtfSpecSize").value;
@@ -524,7 +562,13 @@ function calculate(){
     decoTotal = perUnit * totalPcs;
     decoDesc = isPuff ? "DTF Specialty \u2014 Puff Print" : `DTF Specialty \u2014 ${size}`;
     const tier = dtfTier(totalPcs);
-    laborTotal = DTF_LABOR[tier].f * totalPcs;
+    const locs = DTF_LOCS.dtfspec;
+    const rateKeyMap = { front:"f", back:"b", sleeve:"s" };
+    const labelMap = { front:"Front", back:"Back", sleeve:"Sleeve" };
+    let perPieceRate = 0; const activeLabels = [];
+    Object.keys(locs).forEach(loc => { if(locs[loc]){ perPieceRate += DTF_LABOR[tier][rateKeyMap[loc]]; activeLabels.push(labelMap[loc]); } });
+    dtfLocLabel = activeLabels.join(" + ");
+    laborTotal = perPieceRate * totalPcs;
   } else if(method === "screen"){
     const colors = parseInt(document.getElementById("spColors").value);
     const locations = parseInt(document.getElementById("spLocations").value);
@@ -589,10 +633,17 @@ function calculate(){
   document.getElementById("totalPcs").textContent = totalPcs;
   document.getElementById("decoCostTotal").textContent = fmt(decoTotal);
   const laborLine = document.getElementById("laborLine");
+  const laborLineLbl = laborLine.querySelector(".lbl");
   if(laborTotal > 0){
     laborLine.style.display = "flex";
     document.getElementById("laborCostTotal").textContent = fmt(laborTotal);
-    LAST_LINE_ITEMS.push({ desc: `${methodLabels[method]} labor (your press time)`, qty: 1, price: laborTotal });
+    if((method === "dtf" || method === "dtfspec") && dtfLocLabel){
+      laborLineLbl.textContent = `Your labor \u2014 decoration (${dtfLocLabel}, shown, not forced into total)`;
+      LAST_LINE_ITEMS.push({ desc: `${methodLabels[method]} labor (${dtfLocLabel}, your press time)`, qty: 1, price: laborTotal });
+    } else {
+      laborLineLbl.textContent = "Your labor \u2014 decoration (shown, not forced into total)";
+      LAST_LINE_ITEMS.push({ desc: `${methodLabels[method]} labor (your press time)`, qty: 1, price: laborTotal });
+    }
   } else { laborLine.style.display = "none"; }
 
   const designLaborLine = document.getElementById("designLaborLine");
