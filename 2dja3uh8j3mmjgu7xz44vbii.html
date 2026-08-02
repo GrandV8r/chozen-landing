@@ -74,6 +74,8 @@ select:focus,input:focus{outline:none;border-color:var(--red)}
 .margin-box .row.hi{font-size:15px;font-weight:700;color:var(--tan)}
 .clear-btn{background:none;border:1px solid var(--border);color:var(--silver);font-size:11px;padding:6px 14px;border-radius:5px;cursor:pointer;margin-top:10px}
 .clear-btn:hover{border-color:var(--red);color:var(--red)}
+.invoice-btn{display:block;width:100%;max-width:340px;margin:14px auto 0;background:none;border:1.5px solid var(--red);color:var(--tan);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;padding:11px 20px;border-radius:6px;cursor:pointer;transition:all .2s}
+.invoice-btn:hover{background:var(--red);color:var(--white)}
 .assump{background:rgba(147,90,22,.15);border:1px solid rgba(147,90,22,.4);border-radius:8px;padding:12px 14px;margin-top:14px;font-size:11px;color:var(--tan);line-height:1.6}
 footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;color:var(--silver);line-height:1.7}
 @media(max-width:380px){.size-grid{grid-template-columns:1fr}}
@@ -256,6 +258,8 @@ footer{text-align:center;margin-top:44px;padding:0 20px 20px;font-size:11px;colo
     </div>
   </div>
 
+  <button class="invoice-btn" onclick="sendToInvoice()">Send to Invoice</button>
+
   <div class="assump">
     <strong>v3 — confirmed 1:1 catalog match against quote-calculator.html:</strong> Removed 3 tote items (BG1500, BG424, BG427) that were mistakenly pulled from a different file — they don't exist in the real customer calculator, so they didn't belong here either. Added sublimation mugs (both SKUs). Fixed Screen Print to include the Locations option (front-only vs front+back), matching the customer engine's actual formula. Every blank item, size, and decoration option now matches the live customer tool exactly, except where flagged above (DTF per-sheet vs per-image structural difference; mug cost ambiguity).
   </div>
@@ -347,6 +351,8 @@ const MUG_CATALOG = [
   { id:"mug_inner", name:"15oz Inner Color Mug", style:"XP8541", type:"innercolor", sizes:{"15oz":0} },
 ];
 
+let LAST_LINE_ITEMS = [];
+
 function fmt(n){ return "$"+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,","); }
 function getSpTier(n){
   if(n<24) return null;
@@ -430,6 +436,17 @@ function clearAll(){
   calculate();
 }
 
+function sendToInvoice(){
+  if(LAST_LINE_ITEMS.length === 0){
+    alert("Add at least one item before sending to invoice.");
+    return;
+  }
+  const payload = { door: "Door 1 \u2014 Custom Production", items: LAST_LINE_ITEMS };
+  const json = JSON.stringify(payload);
+  const encoded = encodeURIComponent(btoa(unescape(encodeURIComponent(json))));
+  window.open("https://grandv8r.github.io/chozen-landing/Chozen_Solutions_Invoice_Generator.html?data=" + encoded, "_blank");
+}
+
 function calculate(){
   const method = document.getElementById("method").value;
 
@@ -444,7 +461,9 @@ function calculate(){
     document.getElementById("laborLine").style.display = "none";
     document.getElementById("orderTotalCost").textContent = fmt(total);
     const tbody = document.getElementById("lineBody");
-    tbody.innerHTML = `<tr><td>${type==="economy"?"Economy Sublimation Mug":"15oz Inner Color Mug"}</td><td>—</td><td>${qty}</td><td>${fmt(total)}</td></tr>`;
+    const mugName = type==="economy"?"Economy Sublimation Mug":"15oz Inner Color Mug";
+    tbody.innerHTML = `<tr><td>${mugName}</td><td>—</td><td>${qty}</td><td>${fmt(total)}</td></tr>`;
+    LAST_LINE_ITEMS = qty > 0 ? [{ desc: mugName, qty, price: unitCost }] : [];
     const custPrice = parseFloat(document.getElementById("customerPrice").value)||0;
     const marginBox = document.getElementById("marginBox");
     if(custPrice > 0){
@@ -473,15 +492,18 @@ function calculate(){
     });
   });
 
-  let decoTotal = 0, laborTotal = 0;
+  let decoTotal = 0, laborTotal = 0, decoDesc = "";
+  const methodLabels = {dtf:"DTF Transfer", dtfspec:"DTF Specialty Finish", screen:"Screen Print", vinyl:"Vinyl/HTV", sub:"Sublimation", emb:"Embroidery"};
   if(method === "dtf"){
     const sheets = parseFloat(document.getElementById("dtfSheets").value)||0;
     decoTotal = sheets * DTF_SHEET_COST;
+    decoDesc = `DTF Gang Sheets (${sheets} \u00d7 22"x12")`;
   } else if(method === "dtfspec"){
     const isPuff = document.getElementById("dtfSpecPuff").checked;
     const size = document.getElementById("dtfSpecSize").value;
     const perUnit = isPuff ? DTF_PUFF_RAW : DTF_SPEC_RAW[size];
     decoTotal = perUnit * totalPcs;
+    decoDesc = isPuff ? "DTF Specialty \u2014 Puff Print" : `DTF Specialty \u2014 ${size}`;
   } else if(method === "screen"){
     const colors = parseInt(document.getElementById("spColors").value);
     const locations = parseInt(document.getElementById("spLocations").value);
@@ -491,6 +513,7 @@ function calculate(){
       const perLoc = SP_COST[tier][colors];
       if(perLoc !== null){
         decoTotal = (perLoc * locations * qty) + (SP_SCREEN_CHARGE * colors * locations);
+        decoDesc = `Screen Print \u2014 ${colors} Color(s) \u00d7 ${locations} Location(s)`;
       }
     }
   } else if(method === "vinyl"){
@@ -499,28 +522,33 @@ function calculate(){
     const frac = VINYL_FRACTION[cov];
     decoTotal = VINYL[type] * frac * totalPcs;
     laborTotal = VINYL_LABOR_FULL * frac * totalPcs;
+    decoDesc = `Vinyl (${type}) \u2014 ${cov} coverage`;
   } else if(method === "sub"){
     const size = document.getElementById("subSize").value;
     const c = SUB[size];
     decoTotal = (c.paper + c.ink) * totalPcs;
     laborTotal = c.labor * totalPcs;
+    decoDesc = `Sublimation \u2014 ${size} print`;
   } else if(method === "emb"){
     const stitch = document.getElementById("embStitch").value;
     const qty = parseInt(document.getElementById("embQty").value)||0;
     const tier = getEmbTier(qty);
     const idx = stitch==="high" ? 1 : 0;
     decoTotal = EMB_COST[tier][idx] * qty;
+    decoDesc = `Embroidery \u2014 ${stitch==="high"?"7K-10K":"Under 7K"} stitches`;
   }
 
   const tbody = document.getElementById("lineBody");
   tbody.innerHTML = "";
   let blanksTotal = 0;
+  LAST_LINE_ITEMS = [];
   entries.forEach(({prodName, sz, blank, qty}) => {
     const lineCost = (blank + PACKAGING) * qty;
     blanksTotal += lineCost;
     const tr = document.createElement("tr");
     tr.innerHTML = `<td style="font-size:11px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prodName}</td><td>${sz}</td><td>${qty}</td><td>${fmt(lineCost)}</td>`;
     tbody.appendChild(tr);
+    LAST_LINE_ITEMS.push({ desc: `${prodName} (${sz}) \u2014 Blank + Packaging`, qty, price: blank + PACKAGING });
   });
 
   CATALOG.forEach((cat, ci) => {
@@ -544,6 +572,10 @@ function calculate(){
     laborLine.style.display = "flex";
     document.getElementById("laborCostTotal").textContent = fmt(laborTotal);
   } else { laborLine.style.display = "none"; }
+
+  if(decoTotal > 0 && decoDesc){
+    LAST_LINE_ITEMS.push({ desc: decoDesc, qty: 1, price: decoTotal });
+  }
 
   const grandTotal = blanksTotal + decoTotal;
   document.getElementById("orderTotalCost").textContent = fmt(grandTotal);
