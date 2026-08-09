@@ -257,7 +257,9 @@ async function submitReview(){
 
   const publicIdentity = document.getElementById("publicIdentity").value;
   const orgName = document.getElementById("orgName").value.trim();
+  const reviewId = "REV-" + Date.now().toString(36).toUpperCase() + "-" + Math.random().toString(36).slice(2,6).toUpperCase();
   const payload = {
+    reviewId: reviewId,
     customerName: custName,
     customerEmail: document.getElementById("custEmail").value.trim(),
     orderRef: document.getElementById("orderRef").value.trim(),
